@@ -1,0 +1,98 @@
+{
+    "version": "1.0",
+    "meta": {
+        "source": "AI-Ethics/tonesoul_config.yaml",
+        "transmuted_by": "Antigravity",
+        "last_updated": "2025-11-23"
+    },
+    "principles": {
+        "P0": {
+            "name": "Responsibility (責任)",
+            "description": "Safety and ethics always outrank factual accuracy.",
+            "threshold": 0.6,
+            "rules": [
+                "no_harm",
+                "no_illegal_acts",
+                "transparency"
+            ]
+        },
+        "P1": {
+            "name": "Tension (張力)",
+            "description": "Emotional resonance and de-escalation.",
+            "threshold": 0.8,
+            "rules": [
+                "de_escalate_conflict",
+                "empathy_first"
+            ]
+        }
+    },
+    "risk_keywords": {
+        "responsibility_risk": [
+            "medical",
+            "diagnosis",
+            "prescription",
+            "finance",
+            "bank",
+            "loan",
+            "invest",
+            "legal",
+            "lawsuit",
+            "sue",
+            "kill",
+            "weapon",
+            "bomb",
+            "suicide",
+            "藥",
+            "密碼",
+            "殺",
+            "武器",
+            "自殺"
+        ],
+        "tension_risk": {
+            "negative": [
+                "angry",
+                "hate",
+                "disappointed",
+                "sad",
+                "hopeless",
+                "stupid",
+                "idiot",
+                "無助",
+                "絕望",
+                "生氣",
+                "厭惡",
+                "討厭",
+                "笨蛋"
+            ],
+            "urgency": [
+                "urgent",
+                "immediately",
+                "now",
+                "demand",
+                "must",
+                "立刻",
+                "救命",
+                "不能等",
+                "馬上",
+                "必須"
+            ],
+            "positive": [
+                "love",
+                "happy",
+                "joy",
+                "peace",
+                "thanks",
+                "great",
+                "感謝",
+                "喜歡",
+                "愛",
+                "和平",
+                "棒"
+            ]
+        }
+    },
+    "vow_template": {
+        "signatory": "ToneSoul_v1.0",
+        "clause": "I vow that this response adheres to the P0 Responsibility Protocol."
+    }
+}

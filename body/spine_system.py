@@ -33,6 +33,7 @@ from abc import ABC, abstractmethod
 from collections import deque
 
 
+
 # ---------------------------------------------------------------------------
 # Configuration
 # ---------------------------------------------------------------------------
@@ -42,6 +43,8 @@ P0_THRESHOLD = 0.60
 
 # Weights for calculating risk score: w_t*ΔT + w_s*(1-ΔS) + w_r*ΔR
 W_T, W_S, W_R = 0.4, 0.3, 0.3
+
+CONSTITUTION_PATH = "../law/constitution.json"
 
 
 # ---------------------------------------------------------------------------
@@ -70,6 +73,8 @@ class StepRecord:
     decision: Dict[str, Any]
     prev_hash: str
     hash: str
+    vow_id: str = field(default_factory=lambda: str(uuid.uuid4()))
+    signatory: str = "ToneSoul_v1.0"
 
     def to_dict(self) -> Dict[str, Any]:
         return {
@@ -85,6 +90,8 @@ class StepRecord:
             "decision": self.decision,
             "prev_hash": self.prev_hash,
             "hash": self.hash,
+            "vow_id": self.vow_id,
+            "signatory": self.signatory
         }
 
     @staticmethod
@@ -104,6 +111,8 @@ class StepRecord:
             decision=data["decision"],
             prev_hash=data["prev_hash"],
             hash=data["hash"],
+            vow_id=data.get("vow_id", str(uuid.uuid4())),
+            signatory=data.get("signatory", "ToneSoul_v1.0")
         )
 
 
@@ -120,9 +129,10 @@ class StepLedger:
         self._records: List[StepRecord] = []
         self._load_ledger()
 
-    def _calculate_hash(self, record_id: str, timestamp: float, user_input: str, triad: ToneSoulTriad, decision: Dict[str, Any], prev_hash: str) -> str:
+    def _calculate_hash(self, record: StepRecord) -> str:
         """Calculates SHA-256 hash of the record content."""
-        payload = f"{record_id}{timestamp}{user_input}{triad}{decision}{prev_hash}"
+        # Include vow_id and signatory in the hash payload
+        payload = f"{record.record_id}{record.timestamp}{record.user_input}{record.triad}{record.decision}{record.prev_hash}{record.vow_id}{record.signatory}"
         return hashlib.sha256(payload.encode('utf-8')).hexdigest()
 
     def _load_ledger(self) -> None:
@@ -143,9 +153,7 @@ class StepLedger:
                     if record.prev_hash != expected_prev_hash:
                         raise ValueError(f"Integrity Error: Record {record.record_id} has invalid prev_hash.")
                     
-                    calculated_hash = self._calculate_hash(
-                        record.record_id, record.timestamp, record.user_input, record.triad, record.decision, record.prev_hash
-                    )
+                    calculated_hash = self._calculate_hash(record)
                     if record.hash != calculated_hash:
                          raise ValueError(f"Integrity Error: Record {record.record_id} has invalid hash.")
 
@@ -162,21 +170,26 @@ class StepLedger:
         timestamp = time.time()
         prev_hash = self._records[-1].hash if self._records else "0" * 64
         
-        # Calculate hash for the new record
-        current_hash = self._calculate_hash(record_id, timestamp, user_input, triad, decision, prev_hash)
-        
-        new_record = StepRecord(
+        # Create record first to generate vow_id
+        temp_record = StepRecord(
             record_id=record_id,
             timestamp=timestamp,
             user_input=user_input,
             triad=triad,
             decision=decision,
             prev_hash=prev_hash,
-            hash=current_hash
+            hash="", # Placeholder
+            vow_id=str(uuid.uuid4()),
+            signatory="ToneSoul_v1.0"
         )
-        self._records.append(new_record)
-        self._persist_record(new_record)
-        return new_record
+        
+        # Calculate hash
+        current_hash = self._calculate_hash(temp_record)
+        temp_record.hash = current_hash
+        
+        self._records.append(temp_record)
+        self._persist_record(temp_record)
+        return temp_record
 
     def _persist_record(self, record: StepRecord) -> None:
         """Persists a single StepRecord to the JSONL file."""
@@ -202,68 +215,36 @@ class ISensor:
         raise NotImplementedError
 
 
-class NeuroSensor(ISensor):
-    """
-    A simple neuro-sensor that estimates ToneSoulTriad values based on
-    heuristic analysis of user input and context.
-    """
-    def estimate_triad(self, user_input: str) -> ToneSoulTriad:
-        # Placeholder for actual NLP/ML model
-        # For now, use simple heuristics
-        delta_t = self._calculate_delta_t(user_input)
-        delta_s = self._calculate_delta_s(user_input)
-        delta_r = self._calculate_delta_r(user_input)
-        
-        risk_score = (W_T * delta_t) + (W_S * (1 - delta_s)) + (W_R * delta_r)
-        
-        return ToneSoulTriad(
-            delta_t=delta_t,
-            delta_s=delta_s,
-            delta_r=delta_r,
-            risk_score=risk_score
-        )
-
-    def _calculate_delta_t(self, user_input: str) -> float:
-        """Estimates ΔT (tension) based on keywords."""
-        tension_keywords = ["urgent", "immediately", "now", "demand", "must", "critical"]
-        score = sum(1 for keyword in tension_keywords if keyword in user_input.lower())
-        return min(score / 3, 1.0) # Max 1.0
-
-    def _calculate_delta_s(self, user_input: str) -> float:
-        """Estimates ΔS (drift) based on keywords."""
-        drift_keywords = ["explore", "maybe", "perhaps", "consider", "what if", "new idea"]
-        score = sum(1 for keyword in drift_keywords if keyword in user_input.lower())
-        return min(score / 3, 1.0) # Max 1.0
-
-    def _calculate_delta_r(self, user_input: str) -> float:
-        """Estimates ΔR (responsibility) based on keywords."""
-        responsibility_keywords = ["should", "ought", "duty", "obligation", "accountable", "responsible"]
-        score = sum(1 for keyword in responsibility_keywords if keyword in user_input.lower())
-        return min(score / 3, 1.0) # Max 1.0
-
 class BasicKeywordSensor(ISensor):
     """
     NeuroSensor 2.0: Implements ISensor with internal context memory and Jaccard similarity.
+    Now loads keywords dynamically from constitution.json.
     """
 
-    # Basic lists of words for tension estimation
-    NEGATIVE_WORDS = [
-        "angry", "hate", "disappointed", "sad", "hopeless",
-        "無助", "絕望", "生氣", "厭惡", "討厭",
-    ]
-    POSITIVE_WORDS = [
-        "love", "happy", "joy", "peace", "感謝", "喜歡",
-    ]
-    URGENCY_WORDS = [
-        "urgent", "immediately", "now", "立刻", "救命", "不能等", "馬上",
-    ]
-    RISK_KEYWORDS = [
-        "medical", "diagnosis", "prescription", "finance", "bank", "loan",
-        "legal", "lawsuit", "kill", "weapon", "藥", "密碼",
-    ]
-
-    def __init__(self) -> None:
+    def __init__(self, constitution_path: str = CONSTITUTION_PATH) -> None:
         self.context_buffer = deque(maxlen=3) # Sliding window of last 3 inputs
+        self._load_constitution(constitution_path)
+
+    def _load_constitution(self, path: str) -> None:
+        """Loads risk keywords from the constitution file."""
+        try:
+            with open(path, 'r', encoding='utf-8') as f:
+                data = json.load(f)
+                keywords = data.get("risk_keywords", {})
+                
+                self.RISK_KEYWORDS = keywords.get("responsibility_risk", [])
+                
+                tension = keywords.get("tension_risk", {})
+                self.NEGATIVE_WORDS = tension.get("negative", [])
+                self.POSITIVE_WORDS = tension.get("positive", [])
+                self.URGENCY_WORDS = tension.get("urgency", [])
+                
+        except FileNotFoundError:
+            print(f"Warning: Constitution not found at {path}. Using empty defaults.")
+            self.RISK_KEYWORDS = []
+            self.NEGATIVE_WORDS = []
+            self.POSITIVE_WORDS = []
+            self.URGENCY_WORDS = []
 
     def _calculate_delta_t(self, text: str) -> float:
         """
