@@ -27,20 +27,6 @@ personalized AI systems that carry their own moral exoskeleton.
 
 At a high level the system flows through three modules:
 
-1. **Agent** – receives user input, consults the Time‑Island memory and
-   generates a draft response with a suitable mode (Resonance,
-   Precision or Guardian) based on detected tension.
-2. **EthicalFilter** – evaluates the draft with the ToneSoul Triad and
-   enforces the P0 Guardian protocol.  It can allow the draft to pass or
-   replace it with a safe fallback.
-3. **StepLedger** – appends immutable records of every decision and
-   response, including responsibility tags for accountability and audit.
-
-## Credits
-
-Concept by **Fan‑Wei Huang**, architecture by **Gemini & GPT**.  This
-repository brings together philosophical insight and engineering rigor to
-create a working blueprint for responsible, personalized AI.
 
 ## Repository Structure
 
