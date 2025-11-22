@@ -41,3 +41,14 @@ At a high level the system flows through three modules:
 Concept by **Fan‑Wei Huang**, architecture by **Gemini & GPT**.  This
 repository brings together philosophical insight and engineering rigor to
 create a working blueprint for responsible, personalized AI.
+
+## Repository Structure
+
+The repository is organized as a monorepo with several layers:
+
+- `core/`: Contains the main engine code (`ToneSoul_Core_Architecture.py`) and the package initializer.
+- `constitution/`: Holds the manifesto and foundational philosophical documents that define P0-P4 priorities and the G-P-A-R cycle.
+- `law/`: Defines the contractual layer with the VowObject schema and related protocols.
+- `body/`: Implements the physiological systems including the immutable ledger and responsibility tracing.
+- `docs/`: Contains architecture notes and a migration log documenting the integration process.
+- `simulations/`: Houses stress test scenarios and future example scripts.
