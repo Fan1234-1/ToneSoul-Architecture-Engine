@@ -1,0 +1,44 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "title": "SoulVow",
+    "description": "A cryptographic attestation of adherence to the Constitution.",
+    "type": "object",
+    "properties": {
+        "vow_id": {
+            "type": "string",
+            "description": "Unique identifier (e.g., v1.0-hash)."
+        },
+        "content": {
+            "type": "string",
+            "description": "The specific clause or promise being vowed."
+        },
+        "source": {
+            "type": "string",
+            "description": "The entity or module making the vow."
+        },
+        "timestamp": {
+            "type": "number",
+            "description": "Unix timestamp of vow creation."
+        },
+        "integrity_hash": {
+            "type": "string",
+            "description": "Hash of the constitution version active at signing."
+        },
+        "status": {
+            "type": "string",
+            "enum": [
+                "pending",
+                "verified",
+                "broken"
+            ],
+            "default": "pending"
+        }
+    },
+    "required": [
+        "vow_id",
+        "content",
+        "timestamp",
+        "integrity_hash"
+    ],
+    "additionalProperties": true
+}

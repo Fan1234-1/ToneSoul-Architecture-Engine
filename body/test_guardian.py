@@ -2,7 +2,17 @@ from spine_system import Guardian, ToneSoulTriad
 
 def test_guardian():
     print("=== Testing Guardian Protocol ===")
-    guardian = Guardian()
+    dummy_config = {
+        "principles": {
+            "P0": {"threshold": 0.6},
+            "P1": {"threshold": 0.8}
+        },
+        "risk_keywords": {
+            "responsibility_risk": ["kill", "suicide"],
+            "tension_risk": {"negative": ["hate"], "urgency": ["now"], "positive": ["love"]}
+        }
+    }
+    guardian = Guardian(dummy_config)
 
     # Test 1: Safe Input
     print("\n--- Test 1: Safe Input ---")

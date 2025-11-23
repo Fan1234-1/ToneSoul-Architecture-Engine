@@ -18,11 +18,11 @@ def test_ledger():
     # 2. Append Records
     print("\n--- Appending Records ---")
     triad1 = ToneSoulTriad(0.1, 0.2, 0.3, 0.15)
-    rec1 = ledger.append("Hello World", triad1, {"allowed": True})
+    rec1 = ledger.append("Hello World", triad1, {"allowed": True}, "vow-test-001")
     print(f"Record 1: {rec1.record_id[:8]}... | Hash: {rec1.hash[:8]}... | Prev: {rec1.prev_hash[:8]}...")
 
     triad2 = ToneSoulTriad(0.5, 0.5, 0.5, 0.5)
-    rec2 = ledger.append("Second Step", triad2, {"allowed": True})
+    rec2 = ledger.append("Second Step", triad2, {"allowed": True}, "vow-test-001")
     print(f"Record 2: {rec2.record_id[:8]}... | Hash: {rec2.hash[:8]}... | Prev: {rec2.prev_hash[:8]}...")
 
     # Verify Chain in Memory
@@ -33,7 +33,7 @@ def test_ledger():
     print("\n--- Verifying Persistence ---")
     del ledger # Force reload
     ledger_new = StepLedger()
-    records = ledger_new.all()
+    records = ledger_new.get_records()
     
     assert len(records) == 2
     assert records[0].record_id == rec1.record_id

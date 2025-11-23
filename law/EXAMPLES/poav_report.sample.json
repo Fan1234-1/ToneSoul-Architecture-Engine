@@ -1,0 +1,10 @@
+{
+  "Ds": 0.93,
+  "Df": 0.90,
+  "T": 0.91,
+  "V": 0.88,
+  "score": 0.91,
+  "threshold": 0.90,
+  "status": "PASS",
+  "weakest_link": "V"
+}

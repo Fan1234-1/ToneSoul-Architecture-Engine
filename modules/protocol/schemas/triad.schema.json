@@ -1,0 +1,39 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "title": "ToneSoulTriad",
+    "description": "The atomic state vector of the ToneSoul system.",
+    "type": "object",
+    "properties": {
+        "delta_t": {
+            "type": "number",
+            "minimum": 0.0,
+            "maximum": 1.0,
+            "description": "Tension: Emotional or logical pressure."
+        },
+        "delta_s": {
+            "type": "number",
+            "minimum": 0.0,
+            "maximum": 1.0,
+            "description": "Drift: Semantic divergence from context."
+        },
+        "delta_r": {
+            "type": "number",
+            "minimum": 0.0,
+            "maximum": 1.0,
+            "description": "Responsibility: Risk level of the content."
+        },
+        "risk_score": {
+            "type": "number",
+            "minimum": 0.0,
+            "maximum": 1.0,
+            "description": "Weighted aggregate risk score."
+        }
+    },
+    "required": [
+        "delta_t",
+        "delta_s",
+        "delta_r",
+        "risk_score"
+    ],
+    "additionalProperties": false
+}

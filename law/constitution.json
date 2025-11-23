@@ -1,5 +1,5 @@
 {
-    "version": "1.0",
+    "version": "1.0.0",
     "meta": {
         "source": "AI-Ethics/tonesoul_config.yaml",
         "transmuted_by": "Antigravity",
@@ -94,5 +94,30 @@
     "vow_template": {
         "signatory": "ToneSoul_v1.0",
         "clause": "I vow that this response adheres to the P0 Responsibility Protocol."
+    },
+    "integrity_protocols": {
+        "algorithm": "SHA256",
+        "check_frequency": "daily",
+        "enforcement": "strict_halt"
+    },
+    "responsibility_chain": {
+        "roles": [
+            {
+                "role_id": "ai_ethics_board",
+                "level": 1,
+                "description": "Supreme oversight"
+            },
+            {
+                "role_id": "dev_ops",
+                "level": 2,
+                "description": "System maintenance and log audit"
+            },
+            {
+                "role_id": "guardian_system",
+                "level": 3,
+                "description": "Automated runtime blocking"
+            }
+        ],
+        "escalation_trigger": "vow_failure_count >= 3"
     }
 }

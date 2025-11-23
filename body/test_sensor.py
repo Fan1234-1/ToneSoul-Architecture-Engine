@@ -2,7 +2,13 @@ from spine_system import BasicKeywordSensor
 
 def test_sensor():
     print("=== Testing NeuroSensor 2.0 ===")
-    sensor = BasicKeywordSensor()
+    dummy_config = {
+        "risk_keywords": {
+            "responsibility_risk": ["kill"],
+            "tension_risk": {"negative": ["hate"], "urgency": ["now"], "positive": ["love"]}
+        }
+    }
+    sensor = BasicKeywordSensor(dummy_config)
 
     # Test 1: Initial State
     print("\n--- Test 1: Initial State (No Context) ---")

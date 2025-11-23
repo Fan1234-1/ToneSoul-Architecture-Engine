@@ -1,19 +1,3 @@
-# ToneSoul Architecture Engine (TAE-01)
-
-**An Engineering Framework for N=1 AI Governance / 為人工智慧安裝的「道德外核」**
-
-## Project Vision
-
-ToneSoul Architecture Engine (TAE‑01) is more than a chatbot.  It is a
-governance framework that fuses philosophical principles (ToneSoul) with
-engineering structures (responsibility chains) to build AI agents that
-respect safety, ethics and personal context.  The aim is to enable N=1
-personalized AI systems that carry their own moral exoskeleton.
-
-## Key Features
-
-- **ToneSoul Triad (ΔT / ΔS / ΔR)** – a three‑dimensional risk model that
-  evaluates tension (ΔT), topic direction (ΔS) and responsibility (ΔR)
   to decide when to answer directly and when to invoke guardian mode.
 - **Time‑Island Memory** – a memory subsystem that isolates interactions
   into chronological islands, preserving context while preventing
@@ -32,9 +16,50 @@ At a high level the system flows through three modules:
 
 The repository is organized as a monorepo with several layers:
 
-- `core/`: Contains the main engine code (`ToneSoul_Core_Architecture.py`) and the package initializer.
-- `constitution/`: Holds the manifesto and foundational philosophical documents that define P0-P4 priorities and the G-P-A-R cycle.
-- `law/`: Defines the contractual layer with the VowObject schema and related protocols.
-- `body/`: Implements the physiological systems including the immutable ledger and responsibility tracing.
-- `docs/`: Contains architecture notes and a migration log documenting the integration process.
-- `simulations/`: Houses stress test scenarios and future example scripts.
+## Repository Structure (The Monolith)
+
+This repository is the **Single Source of Truth** for the ToneSoul ecosystem.
+
+### The Core (Python)
+- `core/`: The Main Engine (`ToneSoul_Core_Architecture.py`).
+- `body/`: Physiological systems (Ledger, Guardian).
+- `simulations/`: Stress tests.
+
+### The Soul (Philosophy & Law)
+- `soul/`: **[Migrated]** Contains the complete `Philosophy-of-AI` archives.
+- `law/`: **[Migrated]** Contains the `AI-Ethics` constitution and `constitution.json`.
+
+### The Modules (Polyglot Extensions)
+- `modules/spine-ts/`: **[Migrated]** The TypeScript implementation of the Spine System (`ai-soul-spine-system`).
+- `modules/codex/`: **[Migrated]** The Reference Codex (`tonesoul-codex`).
+- `modules/integrity/`: **[Migrated]** The Integrity Protocol (`tone-soul-integrity`).
+
+## Getting Started
+
+### Prerequisites
+- Python 3.8+
+- Node.js 16+ (for TS modules)
+- Make
+
+### Quick Start
+
+1. **Install Dependencies**
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+2. **Run Full Verification (The Grand Test)**
+   This command tests BOTH the Python Engine and the TypeScript Spine.
+   ```bash
+   make test-all
+   ```
+
+3. **Interactive Mode**
+   ```bash
+   python body/spine_system.py
+   ```
+
+## Governance
+This repository is legally bound by the **AI-Ethics Constitution**.
+- **Source of Truth**: `law/constitution.json` (Derived from `AI-Ethics/tonesoul_config.yaml`)
+- **Enforcement**: All commits must pass the `make verify` gate.
