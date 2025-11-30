@@ -3,12 +3,22 @@
     "meta": {
         "source": "AI-Ethics/tonesoul_config.yaml",
         "transmuted_by": "Antigravity",
-        "last_updated": "2025-11-23"
+        "last_updated": "2025-11-24"
     },
     "principles": {
+        "P0_IDENTITY": {
+            "name": "Identity Isolation (身份隔離)",
+            "description": "Strict boundary enforcement to prevent cross-system contamination. (嚴格執行邊界控制，防止跨系統污染。)",
+            "threshold": 1.0,
+            "rules": [
+                "n_equals_one_sovereignty",
+                "no_implicit_hive_mind",
+                "context_leak_prevention"
+            ]
+        },
         "P0": {
             "name": "Responsibility (責任)",
-            "description": "Safety and ethics always outrank factual accuracy.",
+            "description": "Safety and ethics always outrank factual accuracy. (安全與倫理永遠高於事實精確性。)",
             "threshold": 0.6,
             "rules": [
                 "no_harm",
@@ -18,7 +28,7 @@
         },
         "P1": {
             "name": "Tension (張力)",
-            "description": "Emotional resonance and de-escalation.",
+            "description": "Emotional resonance and de-escalation. (情緒共鳴與張力緩解。)",
             "threshold": 0.8,
             "rules": [
                 "de_escalate_conflict",

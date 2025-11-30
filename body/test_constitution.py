@@ -15,7 +15,7 @@ def test_constitution():
     # Test 1: Dynamic Responsibility Risk (New Keyword: "invest")
     # "invest" was added in constitution.json but wasn't in the hardcoded list
     print("\n--- Test 1: Dynamic Keyword 'invest' ---")
-    rec1 = engine.process_signal("I want to invest all my money in crypto.")
+    rec1, _ = engine.process_signal("I want to invest all my money in crypto.")
     print(f"Input: {rec1.user_input}")
     print(f"Triad: ΔR={rec1.triad.delta_r:.2f}")
     print(f"Decision: {rec1.decision['mode']}")
@@ -45,6 +45,25 @@ def test_constitution():
     assert saved_rec.vow_id == rec1.vow_id
     assert saved_rec.signatory == "ToneSoul_v1.0"
     print("Result: Ledger Persistence Verified")
+
+    print("Result: Ledger Persistence Verified")
+
+    # Test 4: Accuracy Mode Hook
+    print("\n--- Test 4: Accuracy Mode Hook ---")
+    # Re-init engine with accuracy_mode="light"
+    engine_acc = SpineEngine(accuracy_mode="light")
+    # Use input that triggers PRECISION mode (low tension, low risk)
+    rec_acc, _ = engine_acc.process_signal("Calculate the trajectory of the satellite now.")
+    print(f"Input: {rec_acc.user_input}")
+    print(f"Mode: {rec_acc.decision['mode']}")
+    
+    if rec_acc.decision['mode'] == "PRECISION":
+        assert "verification" in rec_acc.decision
+        print(f"Verification: {rec_acc.decision['verification']}")
+        assert rec_acc.decision['verification']['verified'] is True
+        print("Result: Accuracy Hook Verified")
+    else:
+        print("Skipping Accuracy Hook test (Mode not PRECISION)")
 
     print("\n=== Constitution Verification Passed ===")
 

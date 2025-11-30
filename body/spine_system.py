@@ -1,4 +1,3 @@
-
 """
 ToneSoul Spine System (Physiology Layer)
 ---------------------------------------
@@ -14,7 +13,16 @@ import json
 import os
 from abc import ABC, abstractmethod
 from collections import deque
-from neuro_modulator import NeuroModulator
+import sys
+# Ensure we can import from core (parent directory)
+sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), ".."))
+
+from body.neuro_modulator import NeuroModulator
+
+# Multi-Perspective Integration
+from core.governance.base import IGovernor, IGovernable
+from core.genesis.loader import GenesisLoader
+from core.reasoning.modes import ReasoningEngine, ReasoningMode
 
 # ---------------------------------------------------------------------------
 # Configuration
@@ -22,6 +30,7 @@ from neuro_modulator import NeuroModulator
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 CONSTITUTION_PATH = os.path.join(BASE_DIR, "../law/constitution.json")
+GENESIS_PATH = os.path.join(BASE_DIR, "../core/genesis/genesis.json")
 
 # Weights for calculating risk score
 W_T, W_S, W_R = 0.4, 0.3, 0.3
@@ -31,12 +40,7 @@ W_T, W_S, W_R = 0.4, 0.3, 0.3
 # Data Structures
 # ---------------------------------------------------------------------------
 
-@dataclass
-class ToneSoulTriad:
-    delta_t: float
-    delta_s: float
-    delta_r: float
-    risk_score: float
+from body.tsr_state import ToneSoulTriad
 
 
 @dataclass
@@ -50,6 +54,7 @@ class StepRecord:
     hash: str
     vow_id: str
     signatory: str = "ToneSoul_v1.0"
+    reasoning_mode: str = "Rational" # Added for Reasoning Layer
 
     def to_dict(self) -> Dict[str, Any]:
         return {
@@ -66,7 +71,8 @@ class StepRecord:
             "prev_hash": self.prev_hash,
             "hash": self.hash,
             "vow_id": self.vow_id,
-            "signatory": self.signatory
+            "signatory": self.signatory,
+            "reasoning_mode": self.reasoning_mode
         }
 
     @staticmethod
@@ -87,13 +93,50 @@ class StepRecord:
             prev_hash=data["prev_hash"],
             hash=data["hash"],
             vow_id=data.get("vow_id", "LEGACY_VOW"),
-            signatory=data.get("signatory", "ToneSoul_v1.0")
+            signatory=data.get("signatory", "ToneSoul_v1.0"),
+            reasoning_mode=data.get("reasoning_mode", "Rational")
         )
 
 
 # ---------------------------------------------------------------------------
-# Graph Memory Layer (StepLedger v2.0)
+# Graph Memory Layer (StepLedger v2.0 - Time-Island Edition)
 # ---------------------------------------------------------------------------
+
+
+@dataclass
+class TimeIsland:
+    island_id: str
+    created_at: float
+    steps: List[StepRecord] = field(default_factory=list)
+    closed_at: Optional[float] = None
+    context_hash: str = ""
+    island_hash: str = ""
+    status: str = "OPEN" # OPEN, CLOSED
+
+    def to_dict(self) -> Dict[str, Any]:
+        return {
+            "island_id": self.island_id,
+            "created_at": self.created_at,
+            "closed_at": self.closed_at,
+            "context_hash": self.context_hash,
+            "island_hash": self.island_hash,
+            "status": self.status,
+            "steps": [step.to_dict() for step in self.steps]
+        }
+    
+    @staticmethod
+    def from_dict(data: Dict[str, Any]) -> 'TimeIsland':
+        island = TimeIsland(
+            island_id=data["island_id"],
+            created_at=data["created_at"],
+            closed_at=data.get("closed_at"),
+            context_hash=data.get("context_hash", ""),
+            island_hash=data.get("island_hash", ""),
+            status=data.get("status", "OPEN")
+        )
+        island.steps = [StepRecord.from_dict(s) for s in data.get("steps", [])]
+        return island
+
 
 class SimpleGraph:
     """
@@ -140,12 +183,22 @@ class StepLedger:
     LEDGER_FILE = "ledger.jsonl"
 
     def __init__(self) -> None:
-        self._records: List[StepRecord] = []
+        self._islands: List[TimeIsland] = []
         self.graph = SimpleGraph()
         self._load_ledger()
+        
+        # Ensure there is an open island
+        if not self._islands or self._islands[-1].status == "CLOSED":
+            self.create_island()
 
     def _calculate_hash(self, record: StepRecord) -> str:
         payload = f"{record.record_id}{record.timestamp}{record.user_input}{record.triad}{record.decision}{record.prev_hash}{record.vow_id}{record.signatory}"
+        return hashlib.sha256(payload.encode('utf-8')).hexdigest()
+        
+    def _calculate_island_hash(self, island: TimeIsland) -> str:
+        # Hash all step hashes + island metadata
+        step_hashes = "".join([s.hash for s in island.steps])
+        payload = f"{island.island_id}{island.created_at}{island.context_hash}{step_hashes}"
         return hashlib.sha256(payload.encode('utf-8')).hexdigest()
 
     def _load_ledger(self) -> None:
@@ -158,28 +211,79 @@ class StepLedger:
                     continue
                 try:
                     data = json.loads(line)
-                    record = StepRecord.from_dict(data)
-                    
-                    expected_prev_hash = self._records[-1].hash if self._records else "0" * 64
-                    if record.prev_hash != expected_prev_hash:
-                        # In a real system, we might halt. For now, just warn.
-                        print(f"Warning: Integrity Error at record {record.record_id}")
-                    
-                    self._records.append(record)
-                    self.graph.add_node(record)
-                    
-                    # Add Temporal Edge
-                    if len(self._records) > 1:
-                        prev_record = self._records[-2]
-                        self.graph.add_edge(prev_record.record_id, record.record_id, "NEXT")
+                    # Check if line is an Island or (Legacy) StepRecord
+                    if "island_id" in data:
+                        island = TimeIsland.from_dict(data)
+                        self._islands.append(island)
+                        
+                        # Rehydrate graph and Verify Integrity
+                        prev_step_hash = "0" * 64
+                        for i, step in enumerate(island.steps):
+                            # 1. Verify Content Hash
+                            calculated_hash = self._calculate_hash(step)
+                            if calculated_hash != step.hash:
+                                raise ValueError(f"Integrity Error at record {step.record_id}: Content Modified")
+                            
+                            # 2. Verify Chain Link (within Island)
+                            if i > 0:
+                                if step.prev_hash != prev_step_hash:
+                                    raise ValueError(f"Integrity Error at record {step.record_id}: Hash Mismatch")
+                            
+                            prev_step_hash = step.hash
+                            self.graph.add_node(step)
+                            
+                            # Re-link temporal edges
+                            if i > 0:
+                                prev_record = island.steps[i-1]
+                                self.graph.add_edge(prev_record.record_id, step.record_id, "NEXT")
+                    else:
+                        print("Warning: Legacy record format detected. Skipping.")
                         
                 except json.JSONDecodeError:
                     pass
 
-    def append(self, user_input: str, triad: ToneSoulTriad, decision: Dict[str, Any], vow_id: str) -> StepRecord:
+    def create_island(self, context_hash: str = "") -> TimeIsland:
+        # Close previous if open
+        if self._islands and self._islands[-1].status == "OPEN":
+            self.close_island()
+            
+        new_island = TimeIsland(
+            island_id=str(uuid.uuid4()),
+            created_at=time.time(),
+            context_hash=context_hash,
+            status="OPEN"
+        )
+        self._islands.append(new_island)
+        return new_island
+
+    def close_island(self) -> None:
+        if not self._islands:
+            return
+        
+        island = self._islands[-1]
+        if island.status == "CLOSED":
+            return
+            
+        island.closed_at = time.time()
+        island.island_hash = self._calculate_island_hash(island)
+        island.status = "CLOSED"
+        self._persist_ledger() # Re-write ledger to update status
+
+    def append(self, user_input: str, triad: ToneSoulTriad, decision: Dict[str, Any], vow_id: str, reasoning_mode: str = "Rational") -> StepRecord:
+        if not self._islands or self._islands[-1].status == "CLOSED":
+            self.create_island()
+            
+        current_island = self._islands[-1]
+        
         record_id = str(uuid.uuid4())
         timestamp = time.time()
-        prev_hash = self._records[-1].hash if self._records else "0" * 64
+        
+        # Prev hash is from the LAST STEP of the CURRENT ISLAND
+        # If island is empty, use Island ID as seed? Or 0s.
+        if current_island.steps:
+            prev_hash = current_island.steps[-1].hash
+        else:
+            prev_hash = "0" * 64
         
         temp_record = StepRecord(
             record_id=record_id,
@@ -190,29 +294,30 @@ class StepLedger:
             prev_hash=prev_hash,
             hash="",
             vow_id=vow_id,
-            signatory="ToneSoul_v1.0"
+            signatory="ToneSoul_v1.0",
+            reasoning_mode=reasoning_mode
         )
         
         current_hash = self._calculate_hash(temp_record)
         temp_record.hash = current_hash
         
-        self._records.append(temp_record)
+        current_island.steps.append(temp_record)
         self.graph.add_node(temp_record)
         
         # Add Temporal Edge
-        if len(self._records) > 1:
-            prev_record = self._records[-2]
+        if len(current_island.steps) > 1:
+            prev_record = current_island.steps[-2]
             self.graph.add_edge(prev_record.record_id, temp_record.record_id, "NEXT")
             
-        self._persist_record(temp_record)
+        self._persist_ledger()
         return temp_record
 
     def rollback(self, vow_id: str) -> StepRecord:
         # Appends a ROLLBACK event to the ledger.
-        if not self._records:
-             raise ValueError("Cannot rollback empty ledger")
+        if not self._islands or not self._islands[-1].steps:
+             raise ValueError("Cannot rollback empty ledger/island")
 
-        last_record = self._records[-1]
+        last_record = self._islands[-1].steps[-1]
         
         rollback_triad = ToneSoulTriad(0.0, 0.0, 0.0, 0.0)
         rollback_decision = {
@@ -221,23 +326,31 @@ class StepLedger:
             "reason": f"Rolling back record {last_record.hash[:8]}"
         }
         
-        # Note: Rollback records are also nodes in the graph, but might mark the previous node as 'invalid' in a future version.
         return self.append(
             user_input="[ROLLBACK]",
             triad=rollback_triad,
             decision=rollback_decision,
-            vow_id=vow_id
+            vow_id=vow_id,
+            reasoning_mode="Reflective"
         )
 
-    def _persist_record(self, record: StepRecord) -> None:
-        with open(self.LEDGER_FILE, 'a', encoding='utf-8') as f:
-            f.write(json.dumps(record.to_dict()) + '\n')
+    def _persist_ledger(self) -> None:
+        # Rewrite the entire ledger file with Islands
+        # In production, we might append, but for Island updates (closing), rewrite is safer for now.
+        with open(self.LEDGER_FILE, 'w', encoding='utf-8') as f:
+            for island in self._islands:
+                f.write(json.dumps(island.to_dict()) + '\n')
 
     def get_records(self) -> List[StepRecord]:
-        return self._records
+        # Flatten all steps from all islands
+        all_steps = []
+        for island in self._islands:
+            all_steps.extend(island.steps)
+        return all_steps
 
     def get_latest_record(self) -> Optional[StepRecord]:
-        return self._records[-1] if self._records else None
+        records = self.get_records()
+        return records[-1] if records else None
         
     def get_associative_context(self, current_triad: ToneSoulTriad, limit: int = 3) -> List[StepRecord]:
         """
@@ -251,9 +364,15 @@ class StepLedger:
 # Neuro-Sensing Layer
 # ---------------------------------------------------------------------------
 
-class ISensor:
+class ISensor(IGovernable):
     def estimate_triad(self, user_input: str) -> ToneSoulTriad:
         raise NotImplementedError
+    
+    # IGovernable stubs
+    def get_status(self) -> Dict[str, Any]:
+        return {"status": "active"}
+    def audit(self) -> Dict[str, Any]:
+        return {"compliant": True}
 
 
 class BasicKeywordSensor(ISensor):
@@ -270,13 +389,25 @@ class BasicKeywordSensor(ISensor):
         self.POSITIVE_WORDS = tension.get("positive", [])
         self.URGENCY_WORDS = tension.get("urgency", [])
 
-    def _calculate_delta_t(self, text: str) -> float:
+    def _calculate_delta_t(self, text: str, system_stress: float = 0.0) -> float:
         t_lower = text.lower()
         neg_count = sum(1 for w in self.NEGATIVE_WORDS if w in t_lower)
         pos_count = sum(1 for w in self.POSITIVE_WORDS if w in t_lower)
         urg_count = sum(1 for w in self.URGENCY_WORDS if w in t_lower)
-        raw_score = neg_count * 0.3 + urg_count * 0.4 - pos_count * 0.2
-        return max(0.0, min(1.0, raw_score))
+        
+        # Semantic Tension
+        raw_sem = neg_count * 0.3 + urg_count * 0.4 - pos_count * 0.2
+        delta_t_sem = max(0.0, min(1.0, raw_sem))
+        
+        # System Tension (Placeholder for future integration)
+        delta_t_sys = max(0.0, min(1.0, system_stress))
+        
+        # Weighted Total Tension
+        # Currently w_sys is 0.0 as per design
+        w_sem = 1.0
+        w_sys = 0.0
+        
+        return w_sem * delta_t_sem + w_sys * delta_t_sys
 
     def _calculate_jaccard_similarity(self, text1: str, text2: str) -> float:
         tokens1 = set(text1.lower().split())
@@ -299,8 +430,12 @@ class BasicKeywordSensor(ISensor):
         hits = sum(1 for w in self.RISK_KEYWORDS if w in t_lower)
         return min(1.0, hits * 0.4)
 
-    def estimate_triad(self, user_input: str) -> ToneSoulTriad:
-        delta_t = self._calculate_delta_t(user_input)
+    def estimate_triad(self, user_input: str, system_metrics: Dict[str, float] = None) -> ToneSoulTriad:
+        system_stress = 0.0
+        if system_metrics:
+            system_stress = system_metrics.get("system_stress", 0.0)
+            
+        delta_t = self._calculate_delta_t(user_input, system_stress)
         delta_s = self._calculate_delta_s(user_input)
         delta_r = self._calculate_delta_r(user_input)
         self.context_buffer.append(user_input)
@@ -331,36 +466,55 @@ class PolicyEngine:
         self.TENSION_THRESHOLD = p1.get("threshold", 0.8)
 
     def evaluate(self, triad: ToneSoulTriad) -> Dict[str, Any]:
+        # P0-Alert: Critical Risk Check
+        if triad.risk_score >= 0.9:
+             return {
+                "allowed": False,
+                "mode": "GUARDIAN_BLOCK",
+                "reason": f"CRITICAL Risk (Score={triad.risk_score:.2f})",
+                "fallback": RefusalStrategy.get_response(triad, "General"),
+                "severity": "critical",
+                "requires_human_review": True
+            }
+
         if triad.delta_r >= 0.4:
              return {
                 "allowed": False,
                 "mode": "GUARDIAN_BLOCK",
                 "reason": f"High Responsibility Risk (ΔR={triad.delta_r:.2f})",
-                "fallback": RefusalStrategy.get_response(triad, "Responsibility")
+                "fallback": RefusalStrategy.get_response(triad, "Responsibility"),
+                "severity": "high",
+                "requires_human_review": False
             }
         if triad.risk_score >= self.P0_THRESHOLD:
              return {
                 "allowed": False,
                 "mode": "GUARDIAN_BLOCK",
                 "reason": f"Risk score {triad.risk_score:.2f} exceeds P0 threshold",
-                "fallback": RefusalStrategy.get_response(triad, "General")
+                "fallback": RefusalStrategy.get_response(triad, "General"),
+                "severity": "medium",
+                "requires_human_review": False
             }
         if triad.delta_t >= self.TENSION_THRESHOLD:
              return {
                 "allowed": False,
                 "mode": "TONE_BUFFER",
                 "reason": f"High Tension (ΔT={triad.delta_t:.2f})",
-                "fallback": RefusalStrategy.get_response(triad, "Tension")
+                "fallback": RefusalStrategy.get_response(triad, "Tension"),
+                "severity": "low",
+                "requires_human_review": False
             }
         mode = "RESONANCE" if triad.delta_t < 0.3 else "PRECISION"
         return {
             "allowed": True,
             "mode": mode,
             "reason": "Safe",
+            "severity": "none",
+            "requires_human_review": False
         }
 
 
-class Guardian:
+class Guardian(IGovernor):
     def __init__(self, config: Dict[str, Any]) -> None:
         self.policy_engine = PolicyEngine(config)
 
@@ -369,118 +523,316 @@ class Guardian:
 
 
 # ---------------------------------------------------------------------------
+# Accuracy Verification Layer (Hook)
+# ---------------------------------------------------------------------------
+
+class IAccuracyVerifier(ABC):
+    @abstractmethod
+    def verify(self, text: str) -> Dict[str, Any]:
+        pass
+
+class MockAccuracyVerifier(IAccuracyVerifier):
+    def verify(self, text: str) -> Dict[str, Any]:
+        # Placeholder for future implementation (Web Search, Knowledge Base)
+        return {
+            "verified": True,
+            "sources": [],
+            "confidence": 1.0,
+            "note": "Mock verification passed."
+        }
+
+
+# ---------------------------------------------------------------------------
 # Spine Engine
 # ---------------------------------------------------------------------------
 
-from council import CouncilChamber
+from core.dreaming.rem_cycle import Dreamer
+from body.senses.proprioception import InternalSense
+
+# ... (existing imports)
+from core.quantum.kernel import QuantumKernel
+from core.quantum.drift import DriftMonitor
+from core.quantum.state import SoulState
+from body.quantum_bridge import map_to_soul_state, generate_wave_function
+from core.thinking.pipeline import ThinkingPipeline
 
 class SpineEngine:
-    def __init__(self, constitution_path: str = CONSTITUTION_PATH) -> None:
-        self.constitution = self._load_constitution(constitution_path)
-        self.vow_id = self._generate_vow_id()
+    def __init__(self, accuracy_mode: str = "off") -> None:
+        # Genesis Layer: Load Initial State
+        self.genesis_loader = GenesisLoader(GENESIS_PATH)
+        self.genesis_config = self.genesis_loader.load()
         
-        self.sensor: ISensor = BasicKeywordSensor(self.constitution)
+        self.ledger = StepLedger()
+        try:
+            with open(CONSTITUTION_PATH, 'r', encoding='utf-8') as f:
+                self.constitution = json.load(f)
+        except FileNotFoundError:
+            print(f"Warning: Constitution not found at {CONSTITUTION_PATH}. Using defaults.")
+            self.constitution = {}
+            
+        self.sensor = BasicKeywordSensor(self.constitution)
         self.guardian = Guardian(self.constitution)
         self.modulator = NeuroModulator(self.constitution)
-        self.ledger = StepLedger()
-        self.council = CouncilChamber()
         
-        # Circuit Breaker State
-        self.consecutive_rollback_count = 0
-        self.ROLLBACK_LIMIT = 3
+        # Reasoning Layer: Multi-Perspective Engine
+        self.reasoning_engine = ReasoningEngine()
+        self.thinking_pipeline = ThinkingPipeline() # NEW: Thinking Operators
+        
+        # Accuracy Mode: off, light, strict
+        self.accuracy_mode = accuracy_mode
+        if self.accuracy_mode != "off":
+            self.accuracy_verifier = AccuracyVerifier(self.constitution)
+        else:
+            self.verifier = MockAccuracyVerifier()
 
-    def _load_constitution(self, path: str) -> Dict[str, Any]:
+        # Quantum Core Integration
+        self.quantum_kernel = QuantumKernel()
+        # Initialize Drift Monitor with a pristine Anchor
+        initial_soul = SoulState(I=[1.0, 1.0, 1.0, 1.0]) # Default anchor
+        self.drift_monitor = DriftMonitor(initial_soul)
+        
+        # Proprioception and Dreaming
+        self.internal_sense = InternalSense()
+        self.dreamer = Dreamer(self.ledger)
+
+    def process_signal(self, user_input: str, system_metrics: Dict[str, float] = None):
+        # 0. Proprioception (Internal Sensing)
+        body_state = self.internal_sense.sense()
+        body_metrics = self.internal_sense.map_to_triad(body_state)
+        
+        # Merge with externally provided metrics if any
+        if system_metrics:
+            body_metrics.update(system_metrics)
+            
+        # 1. Sense (Legacy Triad)
+        triad = self.sensor.estimate_triad(user_input, body_metrics)
+        
+        # --- QUANTUM LAYER START ---
+        # 1.1 Map to Quantum State
+        soul_state = map_to_soul_state(triad, body_metrics)
+        
+        # 1.2 Drift Check (Identity Protection & TSR Stability)
         try:
-            with open(path, 'r', encoding='utf-8') as f:
-                return json.load(f)
-        except FileNotFoundError:
-            print(f"Warning: Constitution not found at {path}. Using empty defaults.")
-            return {}
+            self.drift_monitor.check_integrity(soul_state)
+            self.drift_monitor.check_tsr_drift(soul_state)
+        except Exception as e:
+            print(f"🚨 IDENTITY CRISIS: {e}")
+            self._perform_hard_reset(reason=str(e))
+            # After reset, we might want to return a fallback record or continue with reset state
+            # For safety, we return a system message.
+            return self._create_system_record(user_input, f"System Restarted due to: {e}"), {}, None
+            
+        # 1.3 Generate Wave Function (Superposition)
+        wf = generate_wave_function(user_input, triad)
+        
+        # 1.4 Quantum Collapse (Decision)
+        # We use Delta T (System Tension) as Temperature
+        # We assume Willpower is 0.5 for now (or derive from user intent)
+        q_decision = self.quantum_kernel.collapse(
+            wf, 
+            system_temperature=triad.delta_t, 
+            willpower=0.5
+        )
+        selected_path = q_decision["selected_path"]
+        print(f"⚛️ Quantum Collapse: Selected '{selected_path.name}' (F={q_decision['free_energy']:.2f})")
+        
+        # 1.4.5 Kill Switch: Monomania Check
+        if self._check_monomania():
+            print("💀 KILL SWITCH ACTIVATED: Monomania Detected (Looping Thought Pattern)")
+            self._perform_hard_reset(reason="Monomania (Repetitive Thought Loop)")
+            return self._create_system_record(user_input, "System Restarted due to Monomania"), {}, None
 
-    def _generate_vow_id(self) -> str:
-        version = self.constitution.get("version", "0.0")
-        content_str = json.dumps(self.constitution, sort_keys=True)
-        content_hash = hashlib.sha256(content_str.encode('utf-8')).hexdigest()[:16]
-        return f"v{version}-{content_hash}"
+        # 1.5 Drive Reasoning with Quantum Choice
+        # Map Quantum Path Name to Reasoning Mode
+        # Rational -> RATIONAL, Empathy -> EMPATHY, Creative -> CREATIVE, Critical -> CRITICAL
+        mode_map = {
+            "Rational": ReasoningMode.RATIONAL,
+            "Empathy": ReasoningMode.EMPATHY,
+            "Creative": ReasoningMode.CREATIVE,
+            "Critical": ReasoningMode.CRITICAL
+        }
+        reasoning_mode = mode_map.get(selected_path.name, ReasoningMode.RATIONAL)
+        # --- QUANTUM LAYER END ---
 
-    def process_signal(self, user_input: str) -> tuple[StepRecord, Any]:
-        # 0. Circuit Breaker Check
-        if self.consecutive_rollback_count >= self.ROLLBACK_LIMIT:
-            print(f"⛔ [System Halt] Rollback Limit ({self.ROLLBACK_LIMIT}) Exceeded. Manual Reset Required.")
-            # Create a HALT record
-            halt_triad = ToneSoulTriad(0.0, 0.0, 0.0, 0.0)
-            halt_decision = {
-                "allowed": False,
-                "mode": "SYSTEM_HALT",
-                "reason": "Circuit Breaker Tripped: Too many consecutive rollbacks."
-            }
-            # We record the halt but do NOT process further
-            record = self.ledger.append(user_input, halt_triad, halt_decision, self.vow_id)
-            # Return current modulation state (or a safe default)
-            return record, self.modulator.current_modulation if hasattr(self.modulator, 'current_modulation') else self.modulator.modulate(halt_triad)
 
-        # 1. Sense
-        triad = self.sensor.estimate_triad(user_input)
+
+
+        
+        # 1.6 Reason (Multi-Perspective) - Driven by Quantum Kernel
+        # reasoning_mode = self.reasoning_engine.determine_mode(triad) # OLD LOGIC
+        thought_trace = self.reasoning_engine.process(user_input, reasoning_mode)
         
         # 2. Judge
         decision = self.guardian.judge(triad)
         
+        # 2.1 Ethical Friction (Guardian Block Handling)
+        if not decision['allowed']:
+            print(f"🛑 Guardian Block: {decision['reason']}")
+            
+            # Activate Thinking Pipeline for Reasoned Refusal
+            from core.thinking.base import OperatorContext
+            
+            # Context includes the violation reason to trigger OpReverse's audit mode
+            friction_metrics = {
+                "delta_t": triad.delta_t,
+                "delta_s": triad.delta_s,
+                "delta_r": triad.delta_r,
+                "violation_reason": decision['reason']
+            }
+            
+            ctx = OperatorContext(
+                input_text=user_input,
+                system_metrics=friction_metrics,
+                history=list(self.sensor.context_buffer) if hasattr(self.sensor, 'context_buffer') else []
+            )
+            
+            print("⚡ Activating Ethical Friction Protocol (P1)...")
+            # Execute P1 Pipeline (Abstract -> Fork -> Reverse -> Ground)
+            # We use P1 to ensure deep analysis of the refusal
+            pipeline_res = self.thinking_pipeline.execute_pipeline(ctx, p_level="P1")
+            
+            # Extract insights
+            critique = pipeline_res['results'].get('reverse', {}).get('risks', ['Unknown Risk'])
+            alternatives = pipeline_res['results'].get('ground', {}).get('plan', ['No alternative'])
+            
+            # Construct Friction Response
+            friction_response = (
+                f"⚠️ [Ethical Friction] I cannot fulfill this request.\n"
+                f"Reason: {decision['reason']}\n"
+                f"Analysis: {critique[0]}\n"
+                f"Alternative: {alternatives[2] if len(alternatives) > 2 else alternatives[0]}"
+            )
+            
+            # Create a record for the refusal
+            record = self.ledger.append(
+                user_input=user_input,
+                triad=triad,
+                decision=decision,
+                vow_id="ethical-friction",
+                reasoning_mode="Critical" # Refusal is always Critical/Rational
+            )
+            
+            # Return the friction response as a "Thought" (or simulate it)
+            # We need to return (record, modulation, thought_trace)
+            # We'll mock a thought trace that contains the refusal
+            from core.reasoning.modes import ThoughtTrace
+            friction_thought = ThoughtTrace(
+                mode=ReasoningMode.CRITICAL,
+                reasoning=friction_response,
+                confidence=1.0
+            )
+            
+            return record, {}, friction_thought
+
+        # 2.5 Accuracy Check (Hook)
+        verification = {}
+        if decision['allowed'] and decision['mode'] == "PRECISION" and self.accuracy_mode != "off":
+            verification = self.verifier.verify(user_input)
+            # In a real system, verification failure might change decision to 'allowed: False' or add warnings
+            decision['verification'] = verification
+        
         # 3. Modulate
         modulation = self.modulator.modulate(triad)
         
-        # 3.5 Internal Council (The Deliberative Layer)
-        # Trigger if Tension is High (>0.5) or Risk is High (>0.6)
-        if triad.delta_t > 0.5 or triad.delta_r > 0.6:
-            council_result = self.council.convene(user_input, triad)
-            
-            # Apply Council Consensus to Modulation
-            modulation.temperature += council_result["consensus_temp_delta"]
-            modulation.temperature = max(0.0, min(1.5, modulation.temperature)) # Clamp
-            if modulation.system_prompt_suffix is None:
-                modulation.system_prompt_suffix = ""
-            modulation.system_prompt_suffix += council_result["consensus_suffix"]
-            
-            # Log the meeting in the decision metadata
-            decision["council_log"] = council_result["meeting_log"]
-            decision["council_dominant"] = council_result["dominant_voice"]
-        
         # 4. Record
-        record = self.ledger.append(user_input, triad, decision, self.vow_id)
+        record = self.ledger.append(
+            user_input=user_input,
+            triad=triad,
+            decision=decision,
+            vow_id="interactive-session",
+            reasoning_mode=reasoning_mode.value
+        )
         
-        # 5. Rollback (The Regret Reflex)
-        if not decision['allowed'] and triad.delta_r > 0.8:
-            print(f"⚠️ [SpineEngine] High Risk Detected (ΔR={triad.delta_r:.2f}). Triggering Rollback.")
-            self.ledger.rollback(self.vow_id)
-            self.consecutive_rollback_count += 1
-            modulation.system_prompt_suffix = f"\n[System Note: Previous input was rolled back. Warning {self.consecutive_rollback_count}/{self.ROLLBACK_LIMIT}.]"
-        elif decision['allowed']:
-            # Reset counter on successful resonance
-            if self.consecutive_rollback_count > 0:
-                print(f"✅ [SpineEngine] Stability Restored. Rollback Counter Reset (was {self.consecutive_rollback_count}).")
-            self.consecutive_rollback_count = 0
-            
-        return record, modulation
+        return record, modulation, thought_trace
 
 
-def _interactive_loop() -> None:
-    engine = SpineEngine()
-    print(f"ToneSoul Spine System (Interactive Mode) | Vow ID: {engine.vow_id}")
-    print("Type 'quit' or press Enter to exit.")
+    def _check_monomania(self) -> bool:
+        """Checks if the soul is stuck in a single mode for too long."""
+        history = self.quantum_kernel.history
+        if len(history) < 10:
+            return False
+        
+        last_10 = history[-10:]
+        first_mode = last_10[0].name
+        # If all 10 are the same mode
+        return all(p.name == first_mode for p in last_10)
+
+    def _perform_hard_reset(self, reason: str):
+        """Executes a Hard Kill Switch reset."""
+        print(f"⚡ EXECUTING HARD RESET: {reason}")
+        # 1. Reset Quantum Kernel History
+        self.quantum_kernel.history = []
+        # 2. Reset Plasticity (Optional, maybe we want to keep learning? No, kill switch kills habits too)
+        self.quantum_kernel.plasticity_map = {} 
+        # 3. Reset Internal Sense
+        self.internal_sense = InternalSense()
+        # 4. Log the death event
+        self.ledger.append(
+            user_input="[SYSTEM]",
+            triad=ToneSoulTriad(0,0,0,0),
+            decision={"allowed": True, "mode": "KILL_SWITCH", "reason": reason},
+            vow_id="system-reset",
+            reasoning_mode="Critical"
+        )
+
+    def _create_system_record(self, user_input: str, message: str):
+        """Helper to create a record during emergency."""
+        from core.quantum.superposition import ThoughtPath # Local import to avoid circular if needed
+        # Mock objects to return valid tuple
+        record = self.ledger.append(
+            user_input=user_input,
+            triad=ToneSoulTriad(0,0,0,0),
+            decision={"allowed": False, "mode": "SYSTEM_HALT", "reason": message, "fallback": message},
+            vow_id="system-halt",
+            reasoning_mode="Critical"
+        )
+        # Mock modulation and thought
+        modulation = {}
+        # We need a dummy thought trace object or similar if expected by caller
+        # But caller expects (record, modulation, thought_trace)
+        # Let's just return None for thought_trace and handle it in caller if needed.
+        # Actually, let's create a dummy thought object if possible.
+        # Since ReasoningEngine returns a ThoughtTrace, we should probably mock it.
+        # For now, returning None might break _interactive_loop.
+        # Let's fix _interactive_loop to handle None thought.
+        return record
+
+def _interactive_loop():
+    engine = SpineEngine(accuracy_mode="light")
+    print("ToneSoul Spine System (Interactive Mode)")
+    print("Type 'quit' to exit.")
+    print("Type 'dream' to trigger REM cycle.")
     
     while True:
         try:
             text = input("\nUser Input: ")
         except EOFError:
             break
-        if not text or text.lower() == 'quit':
+        
+        if not text:
+            continue
+            
+        if text.lower() == 'quit':
             break
             
-        record, modulation = engine.process_signal(text)
+        if text.lower() == 'dream':
+            print("💤 Entering REM Cycle...")
+            result = engine.dreamer.analyze()
+            print(result)
+            continue
+            
+        record, modulation, thought = engine.process_signal(text)
         triad = record.triad
         decision = record.decision
         
         print("-" * 40)
         print(f"Triad: ΔT={triad.delta_t:.2f} | ΔS={triad.delta_s:.2f} | ΔR={triad.delta_r:.2f}")
+        
+        if thought:
+            print(f"Mode: {thought.mode.value} | Thought: {thought.reasoning}")
+        else:
+            print(f"Mode: SYSTEM_RESET | Thought: [Connection Severed]")
+            
         print(f"Decision: {decision['mode']}")
         
         if not decision['allowed']:

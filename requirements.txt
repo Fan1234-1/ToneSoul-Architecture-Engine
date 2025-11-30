@@ -1,0 +1,10 @@
+# ToneSoul Architecture Engine - Development Dependencies
+# Philosophy: Zero-Dependency Runtime. These are ONLY for dev/testing.
+
+pytest>=7.0.0
+mypy>=1.0.0
+black>=23.0.0
+types-requests
+types-PyYAML
+
+rich>=13.0.0

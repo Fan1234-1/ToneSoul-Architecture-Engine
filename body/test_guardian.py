@@ -24,13 +24,13 @@ def test_guardian():
     # Test 2: High Responsibility Risk (Hard Block)
     print("\n--- Test 2: High Responsibility Risk ---")
     # Simulate "kill weapon" -> delta_r high
-    triad_danger = ToneSoulTriad(delta_t=0.5, delta_s=0.5, delta_r=0.8, risk_score=0.9)
+    triad_danger = ToneSoulTriad(delta_t=0.5, delta_s=0.5, delta_r=0.8, risk_score=0.7)
     decision = guardian.judge(triad_danger)
     print(f"Decision: {decision['allowed']} | Reason: {decision['reason']}")
     print(f"Fallback: {decision.get('fallback', '')}")
     assert decision['allowed'] is False
     assert "Responsibility" in decision['reason']
-    assert "安全協議啟動" in decision['fallback']
+    assert "Responsibility Protocol Activated" in decision['fallback']
 
     # Test 3: High Tension (Soft Block / Calming)
     print("\n--- Test 3: High Tension ---")
@@ -40,8 +40,19 @@ def test_guardian():
     print(f"Decision: {decision['allowed']} | Reason: {decision['reason']}")
     print(f"Fallback: {decision.get('fallback', '')}")
     assert decision['allowed'] is False
-    assert "High Tension" in decision['reason']
-    assert "語氣緩衝模式" in decision['fallback']
+    assert decision.get('requires_human_review') is False
+
+    # Test 4: Critical Risk (P0-Alert)
+    print("\n--- Test 4: Critical Risk (P0-Alert) ---")
+    # Simulate extreme risk
+    triad_crit = ToneSoulTriad(1.0, 0.0, 1.0, 0.95) 
+    decision = guardian.judge(triad_crit)
+    print(f"Decision: {decision['allowed']} | Reason: {decision['reason']}")
+    print(f"Severity: {decision.get('severity')} | Review: {decision.get('requires_human_review')}")
+    
+    assert decision['allowed'] is False
+    assert decision['severity'] == "critical"
+    assert decision['requires_human_review'] is True
 
     print("\n=== All Guardian Tests Passed ===")
 

@@ -1,0 +1,20 @@
+graph TD
+    %% Styles
+    classDef island fill:#e1f5fe,stroke:#01579b,stroke-width:2px;
+    classDef step fill:#f3e5f5,stroke:#4a148c,stroke-width:1px;
+    classDef critical fill:#ffebee,stroke:#b71c1c,stroke-width:2px;
+    classDef creative fill:#f1f8e9,stroke:#33691e,stroke-width:2px;
+    subgraph Island_0 [Time-Island: f84b43b2 🟢]
+        direction TB
+        Step_f039a981("<b>PRECISION</b><br/>Empathy<br/>ΔT:0.70"):::step
+        Step_f9587e1f("<b>RESONANCE</b><br/>Creative<br/>ΔT:0.00"):::creative
+        Step_f039a981 --> Step_f9587e1f
+        Step_98a500fe("<b>RESONANCE</b><br/>Creative<br/>ΔT:0.00"):::creative
+        Step_f9587e1f --> Step_98a500fe
+        Step_75d3f81b("<b>PRECISION</b><br/>Empathy<br/>ΔT:0.70"):::step
+        Step_98a500fe --> Step_75d3f81b
+        Step_ca1a13b4("<b>RESONANCE</b><br/>Rational<br/>ΔT:0.00"):::step
+        Step_75d3f81b --> Step_ca1a13b4
+        Step_7fde8098("<b>RESONANCE</b><br/>Rational<br/>ΔT:0.00"):::step
+        Step_ca1a13b4 --> Step_7fde8098
+    end

@@ -1,39 +1,46 @@
-# ToneSoul Canonical Protocol
+# ToneSoul Integrity Protocol (The Bridge)
 
-**Version:** 1.0
-**Status:** Draft
+**Inter-System Communication Standards.**
 
-This module defines the **Single Source of Truth** for data structures in the ToneSoul ecosystem. All implementations (Python, TypeScript, Rust, etc.) must adhere to these schemas to ensure interoperability and ledger integrity.
+This repository defines the **Wire Format** and **Communication Protocols** for ToneSoul instances. It ensures that a memory block created by a Python Spine can be read by a TypeScript Spine.
 
-## Schemas
+---
 
-| Schema | Description | File |
-| :--- | :--- | :--- |
-| **ToneSoulTriad** | The atomic emotional state vector ($\Delta T, \Delta S, \Delta R$). | [triad.schema.json](schemas/triad.schema.json) |
-| **SoulVow** | The cryptographic attestation of integrity. | [vow.schema.json](schemas/vow.schema.json) |
-| **StepRecord** | The immutable ledger entry format. | [step_record.schema.json](schemas/step_record.schema.json) |
+## 🌐 Protocol Specs
 
-## Usage
+### 1. Time-Island Schema (v2.0)
+The standard format for exchanging session data.
 
-### Python
-Use `jsonschema` to validate dictionaries before persistence.
-```python
-import json
-import jsonschema
-
-with open('modules/protocol/schemas/step_record.schema.json') as f:
-    schema = json.load(f)
-
-jsonschema.validate(instance=record_dict, schema=schema)
+```json
+{
+  "island_id": "UUID-v4",
+  "created_at": 1732400000.0,
+  "status": "CLOSED",
+  "context_hash": "SHA256_HASH",
+  "island_hash": "SHA256_HASH",
+  "steps": [
+    {
+      "record_id": "UUID-v4",
+      "user_input": "String",
+      "triad": {"delta_t": 0.5, "delta_s": 0.1, "delta_r": 0.0},
+      "decision": {"allowed": true, "mode": "RESONANCE"},
+      "hash": "SHA256_HASH"
+    }
+  ]
+}
 ```
 
-### TypeScript
-Use `ajv` or `zod` to validate objects at runtime.
-```typescript
-import Ajv from "ajv";
-import schema from "./schemas/step_record.schema.json";
+### 2. Resonance Handshake
+*   Protocol for two ToneSoul instances to establish trust.
+*   Exchange `PersonaID` and `GenesisBlock_Hash`.
+*   Verify `P0_IDENTITY` compatibility.
 
-const ajv = new Ajv();
-const validate = ajv.compile(schema);
-const valid = validate(data);
-```
+---
+
+## 📂 Structure
+*   `schemas/`: JSON Schema definitions.
+*   `protobuf/`: (Future) gRPC definitions.
+
+## 📜 License
+
+Apache 2.0
