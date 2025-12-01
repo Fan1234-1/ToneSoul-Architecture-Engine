@@ -1,41 +1,54 @@
-"""
-Thinking Operators - Base Interface
------------------------------------
-Defines the abstract base class and types for cognitive operators.
-These are "Hard Operators" that enforce specific reasoning steps.
-"""
-
 from abc import ABC, abstractmethod
-from enum import Enum
-from typing import Dict, Any, List, Optional
+from typing import Any, Dict, List, Optional
 from dataclasses import dataclass
-
-class ThinkingOperatorType(Enum):
-    OP_ABSTRACT = "OP_ABSTRACT"        # Rational / Audit: Strip to logic skeleton
-    OP_REVERSE = "OP_REVERSE"          # Black Mirror: Invert and find risks
-    OP_TRANSLATE = "OP_TRANSLATE"      # Co-Voice: Translate across domains
-    OP_FORK = "OP_FORK"                # Spark: Generate variations
-    OP_RESTRUCT = "OP_RESTRUCT"        # Architect: Restructure topology
-    OP_MAP = "OP_MAP"                  # Architect: Map across scenes
-    OP_GROUND = "OP_GROUND"            # Rational / Action: Compile to steps
-    OP_PIPELINE_FULL = "OP_PIPELINE_FULL" # Meta: Full loop
+import time
 
 @dataclass
 class OperatorContext:
-    """The context passed to an operator."""
+    """Context passed to a Thinking Operator."""
     input_text: str
-    system_metrics: Dict[str, float] # T, S, R
+    system_metrics: Dict[str, float] # e.g., Triad (T, S, R)
     history: List[str]
-    # Future: Add FS Vector, TimeIsland ID
+    global_memory: Any = None # Reference to StepLedger or Graph
+
+@dataclass
+class OperationResult:
+    """Result produced by a Thinking Operator."""
+    operator_id: str
+    output: Any # The result (text, plan, list of ideas, etc.)
+    meta: Dict[str, Any] # Execution time, confidence, etc.
+    logs: List[str] # Internal monologue steps
 
 class ThinkingOperator(ABC):
-    def __init__(self, operator_type: ThinkingOperatorType):
-        self.operator_type = operator_type
+    """
+    Abstract Base Class for ToneSoul Thinking Operators.
+    Represents a discrete cognitive function (System-2).
+    """
+    
+    @property
+    @abstractmethod
+    def id(self) -> str:
+        """Unique identifier for the operator (e.g., 'ABSTRACTION')."""
+        pass
 
     @abstractmethod
-    def execute(self, context: OperatorContext) -> Dict[str, Any]:
+    def execute(self, context: OperatorContext) -> OperationResult:
         """
-        Executes the operator logic.
-        Returns a dictionary containing the result and metadata.
+        Executes the cognitive function.
+        
+        Args:
+            context: The input context and system state.
+            
+        Returns:
+            OperationResult containing the output and logs.
         """
+        pass
+
+    def log_to_ledger(self, result: OperationResult, ledger: Any):
+        """
+        Logs the operation result to the StepLedger.
+        Can be overridden for custom logging behavior.
+        """
+        # Default implementation assumes ledger has an append method
+        # In a real system, this would format the result into a StepRecord
         pass

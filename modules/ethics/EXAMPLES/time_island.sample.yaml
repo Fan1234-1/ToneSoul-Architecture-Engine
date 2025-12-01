@@ -1,0 +1,8 @@
+chronos: 2025-08-17T23:42:00+08:00
+kairos:
+  - "首次對外展示前"
+  - "DS < 0.85 時"
+trace:
+  fix_order: ["lowest_scoring_step", "interval_mismatch"]
+  owner: "工程責任人/CI"
+  rollback: "Contract_V2.WatchMode_Termination"

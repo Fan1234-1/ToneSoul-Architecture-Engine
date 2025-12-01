@@ -1,0 +1,7 @@
+flowchart LR
+  Cmd[Command] --> Agg[Aggregate]
+  Agg --> Evt[Event]
+  Evt --> Snp[Snapshot]
+  Qry[Query] --> View[Read Views]
+  style Qry fill:#eef,stroke:#66f
+  style Cmd fill:#efe,stroke:#6f6

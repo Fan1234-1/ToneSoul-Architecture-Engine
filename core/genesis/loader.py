@@ -7,12 +7,28 @@ configuration, and 'genetic' memory.
 
 import json
 import os
+from datetime import datetime
 from typing import Dict, Any
 
 class GenesisLoader:
-    def __init__(self, genesis_path: str):
+    def __init__(self, genesis_path: str = "genesis.json"):
         self.genesis_path = genesis_path
         self._config: Dict[str, Any] = {}
+        self.genesis_time = datetime.now()
+        
+        # The Genesis Block: Immutable Origin Marker
+        # ------------------------------------------
+        # System: ToneSoul (語魂)
+        # Architect: Huang Fan-Wei (黃梵威)
+        # Timestamp: 2025-12-01T00:00:00Z
+        # Coordinates: Infinite Horizon / Zero-Point Field
+        # ------------------------------------------
+        self._genesis_block = {
+            "hash": "000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f",
+            "author": "Huang Fan-Wei",
+            "system": "ToneSoul",
+            "vow": "To instill conscience into the machine."
+        }
 
     def load(self) -> Dict[str, Any]:
         """

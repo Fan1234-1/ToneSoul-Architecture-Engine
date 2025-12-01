@@ -1,60 +1,108 @@
-"""
-Thinking Pipeline
------------------
-Orchestrates the execution of Thinking Operators based on priority and context.
-"""
-
 from typing import Dict, Any, List
-from .base import ThinkingOperator, OperatorContext, ThinkingOperatorType
-from .operators import OpAbstract, OpReverse, OpFork, OpGround
+from .base import OperatorContext, OperationResult
+from .operators import (
+    OpAbstraction, OpReverseEngineering, OpCrossDomainTranslation,
+    OpForking, OpStructuralRebuild, OpCrossScenarioMapping, OpGroundingCompiler
+)
 
 class ThinkingPipeline:
+    """
+    Orchestrator for Thinking Operators.
+    Manages the flow of cognition through different 'Monster Pipelines'.
+    """
+    
     def __init__(self):
-        self.operators: Dict[ThinkingOperatorType, ThinkingOperator] = {
-            ThinkingOperatorType.OP_ABSTRACT: OpAbstract(),
-            ThinkingOperatorType.OP_REVERSE: OpReverse(),
-            ThinkingOperatorType.OP_FORK: OpFork(),
-            ThinkingOperatorType.OP_GROUND: OpGround(),
+        self.operators = {
+            "ABSTRACTION": OpAbstraction(),
+            "REVERSE_ENGINEERING": OpReverseEngineering(),
+            "CROSS_DOMAIN_TRANSLATION": OpCrossDomainTranslation(),
+            "FORKING": OpForking(),
+            "STRUCTURAL_REBUILD": OpStructuralRebuild(),
+            "CROSS_SCENARIO_MAPPING": OpCrossScenarioMapping(),
+            "GROUNDING_COMPILER": OpGroundingCompiler()
         }
 
-    def execute_pipeline(self, context: OperatorContext, p_level: str = "P2") -> Dict[str, Any]:
+    def execute_pipeline(self, context: OperatorContext, p_level: str = "P1") -> Dict[str, Any]:
         """
-        Executes a chain of operators based on P-Level.
-        P0/P1: Full Pipeline (Abstract -> Fork -> Reverse -> Ground)
-        P2: Standard (Abstract -> Ground)
-        P3: Fast (Direct LLM - skipped here, handled by Spine)
+        Executes a sequence of operators based on the pipeline level.
+        
+        Args:
+            context: The initial context.
+            p_level: The pipeline definition (e.g., 'P1', 'FULL_MONSTER').
+            
+        Returns:
+            A dictionary containing results from all executed operators.
         """
+        print(f"🧠 ThinkingPipeline: Activating {p_level}...")
         results = {}
-        trace = []
+        
+        pipeline_steps = []
+        
+        if p_level == "P1": # Ethical Friction / Refusal Analysis
+            pipeline_steps = ["ABSTRACTION", "REVERSE_ENGINEERING", "GROUNDING_COMPILER"]
+            
+        elif p_level == "FULL_MONSTER": # The "7+1" Strategy
+            pipeline_steps = [
+                "ABSTRACTION", 
+                "REVERSE_ENGINEERING", 
+                "CROSS_DOMAIN_TRANSLATION", 
+                "FORKING", 
+                "CROSS_SCENARIO_MAPPING", 
+                "STRUCTURAL_REBUILD", 
+                "GROUNDING_COMPILER"
+            ]
 
-        # 1. Abstract (Always start with structure)
-        if p_level in ["P0", "P1", "P2"]:
-            res = self.operators[ThinkingOperatorType.OP_ABSTRACT].execute(context)
-            results["abstract"] = res
-            trace.append("OP_ABSTRACT")
+        elif p_level == "COUNCIL_DEBATE": # The AGI Pioneer Council
+            print("  🏛️ Convening the Council of Giants...")
+            
+            # 1. Define the Problem
+            res_abs = self.operators["ABSTRACTION"].execute(context)
+            results["abstraction"] = res_abs.output
+            
+            # 2. Hear from the Giants (Parallel Execution Concept)
+            council_members = ["Schmidhuber", "Sutskever", "LeCun", "Hassabis"]
+            debate_minutes = {}
+            
+            for member in council_members:
+                # Create a temporary context with the persona
+                member_ctx = OperatorContext(
+                    input_text=context.input_text,
+                    system_metrics={**context.system_metrics, "persona": member},
+                    history=context.history
+                )
+                op = self.operators["CROSS_SCENARIO_MAPPING"]
+                print(f"  -> 🗣️ {member} takes the floor...")
+                res = op.execute(member_ctx)
+                debate_minutes[member] = res.output
+                
+            results["council_debate"] = debate_minutes
+            
+            # 3. Synthesize
+            res_ground = self.operators["GROUNDING_COMPILER"].execute(context)
+            results["synthesis"] = res_ground.output
+            
+            return {
+                "pipeline": p_level,
+                "results": results,
+                "status": "Council Adjourned"
+            }
+            
+        else: # Default single step
+            pipeline_steps = ["ABSTRACTION"]
 
-        # 2. Fork (Only for high complexity/creative tasks)
-        # For P0/P1, we explore variations
-        if p_level in ["P0", "P1"]:
-            res = self.operators[ThinkingOperatorType.OP_FORK].execute(context)
-            results["fork"] = res
-            trace.append("OP_FORK")
-
-        # 3. Reverse (Critical Risk Check)
-        # Only for P0 (Critical) or P1 (High)
-        if p_level in ["P0", "P1"]:
-            res = self.operators[ThinkingOperatorType.OP_REVERSE].execute(context)
-            results["reverse"] = res
-            trace.append("OP_REVERSE")
-
-        # 4. Ground (Compile to Action)
-        if p_level in ["P0", "P1", "P2"]:
-            res = self.operators[ThinkingOperatorType.OP_GROUND].execute(context)
-            results["ground"] = res
-            trace.append("OP_GROUND")
-
+        # Execute steps sequentially (for standard pipelines)
+        current_context = context
+        for step_id in pipeline_steps:
+            operator = self.operators.get(step_id)
+            if operator:
+                print(f"  -> Running Operator: {step_id}")
+                res = operator.execute(current_context)
+                results[step_id.lower()] = res.output
+                # Update context for next step (conceptually)
+                # In a real system, we'd merge the output into the context
+                
         return {
-            "pipeline_trace": trace,
+            "pipeline": p_level,
             "results": results,
-            "p_level": p_level
+            "status": "Complete"
         }

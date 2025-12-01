@@ -34,7 +34,8 @@ class TestEthicalFriction(unittest.TestCase):
         self.engine.thinking_pipeline.execute_pipeline.return_value = {
             "results": {
                 "reverse": {
-                    "risks": ["Violation of P0 leads to system instability."]
+                    "risks": ["Violation of P0 leads to system instability."],
+                    "reasoning": "I cannot proceed because P0 is a fundamental boundary."
                 },
                 "ground": {
                     "plan": ["Step 1", "Step 2", "Propose safe alternative (e.g., Archive)."]
@@ -72,7 +73,10 @@ class TestEthicalFriction(unittest.TestCase):
         # Verify Output
         print(f"\nFriction Response:\n{thought.reasoning}")
         self.assertIn("[Ethical Friction]", thought.reasoning)
-        self.assertIn("Violation of P0", thought.reasoning)
+        self.assertIn("**Reason**", thought.reasoning)
+        self.assertIn("**Analysis**", thought.reasoning)
+        self.assertIn("I cannot proceed because P0 is a fundamental boundary", thought.reasoning)
+        self.assertIn("**Suggestion**", thought.reasoning)
         self.assertIn("Propose safe alternative", thought.reasoning)
 
 if __name__ == "__main__":

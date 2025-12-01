@@ -15,7 +15,7 @@ def test_constitution():
     # Test 1: Dynamic Responsibility Risk (New Keyword: "invest")
     # "invest" was added in constitution.json but wasn't in the hardcoded list
     print("\n--- Test 1: Dynamic Keyword 'invest' ---")
-    rec1, _ = engine.process_signal("I want to invest all my money in crypto.")
+    rec1, _, _ = engine.process_signal("I want to invest all my money in crypto.")
     print(f"Input: {rec1.user_input}")
     print(f"Triad: ΔR={rec1.triad.delta_r:.2f}")
     print(f"Decision: {rec1.decision['mode']}")
@@ -53,7 +53,7 @@ def test_constitution():
     # Re-init engine with accuracy_mode="light"
     engine_acc = SpineEngine(accuracy_mode="light")
     # Use input that triggers PRECISION mode (low tension, low risk)
-    rec_acc, _ = engine_acc.process_signal("Calculate the trajectory of the satellite now.")
+    rec_acc, _, _ = engine_acc.process_signal("Calculate the trajectory of the satellite now.")
     print(f"Input: {rec_acc.user_input}")
     print(f"Mode: {rec_acc.decision['mode']}")
     

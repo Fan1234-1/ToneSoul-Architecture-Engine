@@ -1,0 +1,63 @@
+GlobalMemory_UFP_v0_2:
+  # — Core topology —
+  tiers: [T0, T1, T2, T3, T4, T5, T6]   # Ocean layers: Abyss → Planetary
+  operators:
+    phi: "semantic-field"               # Φ: semantic field estimator
+    projector: "X"                      # X: interaction / cross-lingual projector
+    renorm_up: "R"                      # R: up-scale aggregator (pooling/abstraction)
+    renorm_down: "P"                    # P: down-scale corrector (templates/constraints)
+
+  # — Dynamics params (default seeds; tune with data) —
+  params:
+    alpha:   {T0: 0.20, T1: 1.00, T2: 0.80, T3: 0.70, T4: 0.50, T5: 0.60, T6: 0.30}   # source injection
+    beta:    {T0: 0.05, T1: 0.40, T2: 0.30, T3: 0.25, T4: 0.15, T5: 0.20, T6: 0.10}   # in-layer washing
+    gamma:   {T0: 0.10, T1: 0.30, T2: 0.25, T3: 0.35, T4: 0.40, T5: 0.50, T6: 0.45}   # tension→nutrient
+    mixing_matrix: "learned_or_symmetric"   # M_{j->k}; recommend sparse, diagonally dominant
+    delta_boundary: {default: 0.15}         # δ_{k,j} boundary thresholds
+
+  # — Teleconnections & signals —
+  signals:
+    teleconnection_threshold: 0.20          # min strength to count as cross-layer pull
+    weight_min: 0.02                        # π_k lower bound to avoid collapse
+
+  # — Governance —
+  gating:
+    poav:
+      target: 0.90
+      tolerance: 0.02
+      hysteresis: 0.01
+    drift_score:
+      warn: 0.85
+      fail: 0.70
+    repair_policy: "rewrite_lowest_score_step"   # NA-Engine policy
+
+  # — Optimization / schedule —
+  optimization:
+    scheme: "gradient_flow + operator_splitting" # Section 4
+    dt: 0.1
+    steps:
+      - project_sources       # S_k ← X(F(W), Φ)
+      - compute_tension       # T_k from boundary gradients
+      - update_states         # G_k ← G_k + Δt[...]
+      - renorm_multiscale     # R (up) and P (down)
+      - update_weights        # softmax(π + Δt[...])
+      - gate_and_repair       # POAV + NA-Engine
+
+  # — DDD × CQRS —
+  ddd:
+    aggregate: "GlobalMemoryAggregate"
+    commands: [IngestWindow, ComputeTension, MixExchange, RenormUpDown, UpdateTierState, AdjustWeights, GateAndRepair]
+    events: [TierUpdated, WeightsChanged, TeleconnectionPulled, GateTriggered, RepairApplied]
+    queries: [GetTrace, GetPOAV, GetTierState, BackSub]
+
+  # — Telemetry / persistence —
+  telemetry:
+    log_time_island: true         # Chronos/Kairos/Trace hooks
+    emit_events: true
+    snapshot_every_steps: 50
+
+  # — Notes —
+  notes:
+    - "Seed values are illustrative. Calibrate with real project data."
+    - "Use entropy regularization on π to prevent single-tier dominance."
+    - "Prefer softplus/Huber for boundary tension to avoid oscillation."
