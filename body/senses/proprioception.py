@@ -8,6 +8,7 @@ Gives the AI a sense of its own "body".
 import random
 import time
 from dataclasses import dataclass
+from body.tsr_state import ToneSoulTriad
 
 try:
     import psutil
@@ -25,6 +26,7 @@ class InternalSense:
     def __init__(self):
         self.baseline_cpu = 0.0
         self.baseline_mem = 0.0
+        self.current_triad = ToneSoulTriad(0.0, 0.0, 0.0, 0.0) # Cache for Heartbeat
         
     def sense(self) -> BodyState:
         """
@@ -71,6 +73,9 @@ class InternalSense:
         if state.temperature > 0.7:
             delta_r = (state.temperature - 0.7) * 3.33 # Map 0.7-1.0 to 0.0-1.0
             delta_r = min(1.0, delta_r)
+        
+        # Update cached triad
+        self.current_triad = ToneSoulTriad(delta_t, delta_s, delta_r, 0.0) # Risk score calc is in Sensor, but we store raw metrics here
         
         return {
             "system_tension": delta_t,

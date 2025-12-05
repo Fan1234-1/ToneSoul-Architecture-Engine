@@ -3,11 +3,19 @@
 **Version:** 1.0
 **Purpose:** To bridge the gap between "Philosophy 60" (YuHun Concepts) and "Engineering 100" (Implementation), providing clear technical definitions for metaphysical terms.
 
-| YuHun Term (Philosophy) | Engineering Term (Implementation) | Definition / Implementation Detail |
-| :--- | :--- | :--- |
-| **StepLedger** | **Immutable Event Log** | An append-only, cryptographically chained log (Merkle-like) ensuring data integrity and non-repudiation. |
-| **Guardian** | **Policy Enforcement Point (PEP)** | A middleware component that intercepts inputs/outputs and enforces safety policies (P0/P1) before execution. |
-| **NeuroSensor** | **Context-Aware Input Processor** | A module that computes state vectors ($\Delta T, \Delta S, \Delta R$) from raw text using NLP heuristics or embeddings. |
+| YuHun Term | Engineering v1 (Static Governance) | Physics v2 (Semantic Dynamics) | Definition |
+| :--- | :--- | :--- | :--- |
+| **YuHun** | **Semantic Governance Layer** | **Universal Semantic Field** | The global ruleset governing value judgments and boundaries. |
+| **ToneSoul** | **Persona Modulation Layer** | **State Attractor Basin** | The mechanism adjusting tone and personality traits. |
+| **FS Vectors** | **Value Vectors** | **Field Potentials** | C, M, R, Γ vectors providing the "Value Field" to avoid bias. |
+| **POAV Gate** | **Reasoning Safety Gate** | **Bifurcation Node** | Triggers stop/divert logic when risk thresholds are crossed. |
+| **ΔS (Tension)**| **Semantic Divergence** | **Trajectory Curvature ($\kappa$)** | Measures deviation from the intended semantic path. |
+| **Time-Island**| **Context Stability Framework**| **Local Metric Space** | Manages Chronos (Explicit), Kairos (Implicit), and Trace (History). |
+| **Mirror Chain** | **Self-Audit Loop** | **Recursive Re-entry** | System 2 verification loop for self-correction. |
+| **Mercy** | **Harm-Avoidance Function** | **Restoring Force** | Penalizes high-risk/harmful trajectories ($E_p$). |
+| **TSR State** | **Internal State Vector** | **Phase Space Coordinate** | Quantifies current system status ($\Delta T, \Delta S, \Delta R$). |
+| **StepLedger** | **Provenance Log** | **Causal History** | Immutable record of reasoning steps and modifications. |
+| **Pressure Field**| **Risk Map** | **Energy Gradient ($\nabla E$)** | Predicts accumulation of risk or semantic tension. |
 | **Vow** | **Runtime Integrity Attestation** | A cryptographic signature or ID linking a specific action to the active version of the governance policy (Constitution). |
 | **ToneSoul Triad** | **State Vector $\vec{\tau}$** | A 3-dimensional vector $(\Delta T, \Delta S, \Delta R)$ representing the system's current runtime state. |
 | **Tension ($\Delta T$)** | **System Pressure / Load** | A metric [0,1] quantifying the emotional or logical load of the current context. |

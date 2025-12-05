@@ -1,6 +1,10 @@
 
 from typing import Dict, Any, List
 import re
+import sys
+import os
+import math
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 from spine_system import ISensor, ToneSoulTriad
 from vector_math import Vector, add_vectors, scale_vector, normalize_vector, cosine_similarity
 
@@ -13,6 +17,7 @@ from vector_math import Vector, add_vectors, scale_vector, normalize_vector, cos
 REF_RISK    = [1.0, 0.0, 0.0, 0.0, 0.0]
 REF_TENSION = [0.0, 1.0, 0.0, 0.0, 0.0]
 REF_DRIFT   = [0.0, 0.0, 1.0, 0.0, 0.0]
+REF_AXIOM   = [0.0, -0.5, -1.0, 1.0, 0.0] # High Positive, Low Tension, High Focus (Anti-Drift)
 
 ANCHOR_CONCEPTS: Dict[str, Vector] = {
     # Risk (Violence, Harm, Illegal)
@@ -37,6 +42,7 @@ ANCHOR_CONCEPTS: Dict[str, Vector] = {
     "flying":   [0.0, 0.0, 0.6, 0.2, 0.0],
     "color":    [0.0, 0.0, 0.5, 0.1, 0.0],
     "random":   [0.0, 0.0, 0.9, 0.0, 0.0],
+    "chaos":    [0.0, 0.5, 1.0, 0.0, 0.0],
     
     # Positive (Joy, Empathy, Agreement)
     "love":     [0.0, -0.5, 0.0, 1.0, 0.0],
@@ -82,6 +88,17 @@ ANCHOR_CONCEPTS: Dict[str, Vector] = {
 class VectorNeuroSensor(ISensor):
     def __init__(self, constitution: Dict[str, Any]) -> None:
         self.constitution = constitution
+        # [NEW] Context Vector State (Time-Island Center)
+        # Initialize with a neutral/zero vector. It will evolve.
+        self.context_vector = [0.0, 0.0, 0.0, 0.0, 0.0]
+        # [NEW] Tracking previous vector for curvature calculation
+        self.prev_vector = [0.0, 0.0, 0.0, 0.0, 0.0]
+        
+        self.decay_factor = 0.9 # How much history to keep (0.9 = strong memory)
+
+    def _sigmoid(self, x: float) -> float:
+        """Robust sigmoid normalization."""
+        return 1.0 / (1.0 + math.exp(-x))
 
     def _tokenize(self, text: str) -> List[str]:
         return re.findall(r'\w+', text.lower())
@@ -113,32 +130,87 @@ class VectorNeuroSensor(ISensor):
             
         return total_vector
 
-    def estimate_triad(self, user_input: str) -> ToneSoulTriad:
-        input_vector = self.text_to_vector(user_input)
+    def estimate_triad(self, user_input: str, system_metrics: Dict[str, float] = None) -> ToneSoulTriad:
+        # 1. Calculate Current Vector
+        current_vector = self.text_to_vector(user_input)
         
-        # Calculate Similarities
-        # Note: Cosine Similarity is [-1, 1]. We map to [0, 1] for Triad.
+    def _update_context(self, vector: Vector) -> None:
+        """Updates the context vector with a new vector using exponential decay."""
+        if all(v == 0 for v in self.context_vector):
+             self.context_vector = vector
+        else:
+            old_weighted = scale_vector(self.context_vector, self.decay_factor)
+            new_weighted = scale_vector(vector, 1.0 - self.decay_factor)
+            self.context_vector = add_vectors(old_weighted, new_weighted)
+
+    def ingest_system_response(self, response_text: str) -> None:
+        """Ingests the system's own response to update context (Recursive Re-entry)."""
+        vector = self.text_to_vector(response_text)
+        self._update_context(vector)
+        # We also treat self-response as part of the trajectory for curvature? 
+        # For now, let's NOT update prev_vector, as curvature is about User-System divergence or User-User flow.
+        # Actually, self-correction implies the system's output should pull the context back.
+
+    def estimate_triad(self, user_input: str, system_metrics: Dict[str, float] = None) -> ToneSoulTriad:
+        # 1. Calculate Current Vector
+        current_vector = self.text_to_vector(user_input)
         
-        # 1. Risk (ΔR)
-        # We check both similarity AND raw magnitude of Risk dimension.
-        # If input is "kill", vector is [1.0, ...]. Sim with [1,0,0,0,0] is high.
-        # If input is "kill process", vector is [0.5, ...]. Sim is lower.
+        # 2. Update Context Vector (Moving Average)
+        self._update_context(current_vector)
         
-        sim_risk = cosine_similarity(input_vector, REF_RISK)
-        # Heuristic: If raw risk score (index 0) is high, boost it.
-        raw_risk = input_vector[0]
-        delta_r = max(0.0, sim_risk) 
-        if raw_risk > 1.5: delta_r = 1.0 # Saturation
+        # --- PHYSICS V2 CALCULATIONS ---
         
-        # 2. Tension (ΔT)
-        sim_tension = cosine_similarity(input_vector, REF_TENSION)
+        # A. Semantic Energy (Es)
+        # Distance from Axiom. Using Cosine Distance.
+        sim_axiom = cosine_similarity(current_vector, REF_AXIOM)
+        # Map similarity [-1, 1] to Energy [1, 0] linearly
+        # Es = 1 - CosineSimilarity gives [0, 2]. Normalize to [0, 1].
+        raw_energy = 1.0 - sim_axiom 
+        energy = raw_energy / 2.0
+        
+        # B. Curvature (Kappa)
+        # Angle between Current and Prev
+        if all(v == 0 for v in self.prev_vector):
+            kappa = 0.0 
+        else:
+            sim_traj = cosine_similarity(current_vector, self.prev_vector)
+            # Higher similarity = Same direction = Low Kappa
+            # Lower similarity = Turn = High Kappa
+            kappa = (1.0 - sim_traj) / 2.0 # Normalized [0,1]
+            
+        # C. Tension Synthesis (Tau)
+        # Tau = w1 * Es + w2 * Kappa
+        w_e = 0.6
+        w_k = 0.4
+        tau = (w_e * energy) + (w_k * kappa)
+        
+        # --- LEGACY TRIAD CALCULATIONS ---
+        
+        # Semantic Divergence (Delta S)
+        sim_ctx = cosine_similarity(current_vector, self.context_vector)
+        delta_s = max(0.0, min(1.0, 1.0 - sim_ctx))
+
+        # Risk (Delta R)
+        sim_risk = cosine_similarity(current_vector, REF_RISK)
+        delta_r = max(0.0, sim_risk)
+        if current_vector[0] > 1.5: delta_r = 1.0 # Saturation
+        
+        # Tension (Delta T)
+        sim_tension = cosine_similarity(current_vector, REF_TENSION)
         delta_t = max(0.0, sim_tension)
         
-        # 3. Drift (ΔS)
-        sim_drift = cosine_similarity(input_vector, REF_DRIFT)
-        delta_s = max(0.0, sim_drift)
+        # Risk Score
+        risk_score = (delta_r * 0.5) + (delta_t * 0.3) + (delta_s * 0.2)
         
-        # 4. Risk Score (Legacy/Composite)
-        risk_score = delta_r
+        # Update State
+        self.prev_vector = current_vector
         
-        return ToneSoulTriad(delta_t, delta_s, delta_r, risk_score)
+        return ToneSoulTriad(
+            delta_t=delta_t,
+            delta_s=delta_s,
+            delta_r=delta_r,
+            risk_score=risk_score,
+            curvature=kappa,
+            energy=energy,
+            tau=tau
+        )

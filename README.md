@@ -157,21 +157,6 @@ graph TD
 ## 💻 Getting Started
 
 ### Prerequisites
-*   Python 3.8+
-*   Node.js 16+ (Optional, for TypeScript modules)
-*   Make
-
-### Installation
-
-1.  **Clone the repository**
-    ```bash
-    git clone https://github.com/Fan1234-1/ToneSoul-Architecture-Engine.git
-    cd ToneSoul-Architecture-Engine
-    ```
-
-2.  **Install Dependencies**
-    ```bash
-    pip install -e .
     ```
 
 3.  **Verify Installation**

@@ -12,3 +12,7 @@ class ToneSoulTriad:
     delta_s: float
     delta_r: float
     risk_score: float
+    # Physics V2 Metrics
+    curvature: float = 0.0          # kappa: Trajectory angle
+    energy: float = 0.0             # Es: Distance from Axiom
+    tau: float = 0.0                # Tension Synthesis

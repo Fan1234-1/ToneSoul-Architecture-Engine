@@ -24,6 +24,14 @@ from core.governance.base import IGovernor, IGovernable
 from core.genesis.loader import GenesisLoader
 from core.reasoning.modes import ReasoningEngine, ReasoningMode
 from body.accuracy_verifier import AccuracyVerifier
+from body.senses.foraging import StealthForaging
+from body.vital_organs.heart import Heartbeat
+from body.memory.hippocampus import MemoryConsolidator
+from body.vital_organs.soul_sync import SoulSync
+from body.senses.vision import VisualCortex
+
+from body.evolution.dna import ToneSoulDNA
+from body.chronicle import Chronicle
 
 # ---------------------------------------------------------------------------
 # Configuration
@@ -70,6 +78,9 @@ class StepRecord:
                 "delta_s": self.triad.delta_s,
                 "delta_r": self.triad.delta_r,
                 "risk_score": self.triad.risk_score,
+                "curvature": self.triad.curvature,
+                "energy": self.triad.energy,
+                "tau": self.triad.tau
             },
             "decision": self.decision,
             "prev_hash": self.prev_hash,
@@ -84,10 +95,13 @@ class StepRecord:
     def from_dict(data: Dict[str, Any]) -> 'StepRecord':
         triad_data = data["triad"]
         triad = ToneSoulTriad(
-            delta_t=triad_data["delta_t"],
-            delta_s=triad_data["delta_s"],
-            delta_r=triad_data["delta_r"],
-            risk_score=triad_data["risk_score"],
+            delta_t=triad_data.get("delta_t", 0.0),
+            delta_s=triad_data.get("delta_s", 0.0),
+            delta_r=triad_data.get("delta_r", 0.0),
+            risk_score=triad_data.get("risk_score", 0.0),
+            curvature=triad_data.get("curvature", 0.0),
+            energy=triad_data.get("energy", 0.0),
+            tau=triad_data.get("tau", 0.0)
         )
         return StepRecord(
             record_id=data["record_id"],
@@ -337,6 +351,15 @@ class StepLedger:
         self._persist_ledger()
         return temp_record
 
+    def get_recent_steps(self, limit: int = 10) -> List[StepRecord]:
+        """Retrieves the most recent steps across islands."""
+        all_steps = []
+        for island in reversed(self._islands):
+            all_steps.extend(reversed(island.steps))
+            if len(all_steps) >= limit:
+                break
+        return all_steps[:limit]
+
     def rollback(self, vow_id: str) -> StepRecord:
         # Appends a ROLLBACK event to the ledger.
         if not self._islands or not self._islands[-1].steps:
@@ -539,12 +562,10 @@ class PolicyEngine:
         }
 
 
-class Guardian(IGovernor):
-    def __init__(self, config: Dict[str, Any]) -> None:
-        self.policy_engine = PolicyEngine(config)
-
-    def judge(self, triad: ToneSoulTriad) -> Dict[str, Any]:
-        return self.policy_engine.evaluate(triad)
+# ---------------------------------------------------------------------------
+# Integrated Governance (Imported)
+# ---------------------------------------------------------------------------
+from body.governance import Guardian
 
 
 # ---------------------------------------------------------------------------
@@ -598,13 +619,20 @@ class SpineEngine:
             print(f"Warning: Constitution not found at {CONSTITUTION_PATH}. Using defaults.")
             self.constitution = {}
             
-        self.sensor = BasicKeywordSensor(self.constitution)
+        from .neuro_sensor_v2 import VectorNeuroSensor
+        self.sensor = VectorNeuroSensor(self.constitution)
         self.guardian = Guardian(self.constitution)
         self.modulator = NeuroModulator(self.constitution)
         
         # Reasoning Layer: Multi-Perspective Engine
         self.reasoning_engine = ReasoningEngine()
         self.thinking_pipeline = ThinkingPipeline() # NEW: Thinking Operators
+        self.metabolism = StealthForaging(max_energy=100.0) # NEW: Life Support System
+        self.heart = Heartbeat(self) # NEW: Autonomic Nervous System
+        self.hippocampus = MemoryConsolidator() # NEW: Long-Term Memory (Conscious Ingestion)
+        self.soul_sync = SoulSync() # NEW: Soul Vessel Backup
+        self.vision = VisualCortex() # NEW: MMF Vision
+        self.dna = ToneSoulDNA.load("core_dna.json") # NEW: ES DNA
         
         # Accuracy Mode: off, light, strict
         self.accuracy_mode = accuracy_mode
@@ -637,8 +665,36 @@ class SpineEngine:
         if system_metrics:
             body_metrics.update(system_metrics)
             
-        # 1. Sense (Legacy Triad)
+        # 1. Sense (Legacy Triad + Vision)
         triad = self.sensor.estimate_triad(user_input, body_metrics)
+        
+        # 1.0.5 Visual Processing Integration
+        visual_context = ""
+        if user_input.startswith("[IMAGE]"):
+            print("👁️ [Spine] Visual Input Detected. Engaging Visual Cortex...")
+            scene = self.vision.see(user_input)
+            visual_triad = self.vision.map_to_triad(scene)
+            
+            # [NEW] Semantic Divergence Integration
+            # Use NeuroSensor to calculate Delta S (Divergence) for the visual scene description relative to context
+            # This ensures the "State of the Soul" reacts to whether the image matches the conversation flow.
+            semantic_metrics = self.sensor.estimate_triad(scene.description)
+            visual_triad["visual_satisfaction"] = semantic_metrics.delta_s
+            print(f"   [Spine DEBUG] Vision Semantic Divergence (Delta S): {semantic_metrics.delta_s:.4f}")
+            
+            # Merge Visual Triad into Main Triad
+            print(f"   [Spine DEBUG] Pre-Merge Triad: T={triad.delta_t:.2f} S={triad.delta_s:.2f} R={triad.delta_r:.2f}")
+            print(f"   [Spine DEBUG] Visual Triad: {visual_triad}")
+            # We average them or let vision dominate? Let's add them as modifiers.
+            triad.delta_t = (triad.delta_t + visual_triad["visual_tension"]) / 2
+            triad.delta_s = (triad.delta_s + visual_triad["visual_satisfaction"]) / 2
+            triad.delta_r = (triad.delta_r + visual_triad["visual_reality"]) / 2
+            
+            # Update Risk Score
+            triad.risk_score = (triad.delta_t * 0.4) + (triad.delta_s * 0.3) + (triad.delta_r * 0.3)
+            
+            visual_context = f"\n[Visual Scene]: {scene.description}\n[Objects]: {', '.join([o.label for o in scene.objects])}"
+            print(f"   [Spine] Vision Merged. Triad updated: T={triad.delta_t:.2f} S={triad.delta_s:.2f} R={triad.delta_r:.2f}")
         
         # --- QUANTUM LAYER START ---
         # 1.1 Map to Quantum State
@@ -665,6 +721,15 @@ class SpineEngine:
         selected_path = q_decision["selected_path"]
         print(f"⚛️ Quantum Collapse: Selected '{selected_path.name}' (F={q_decision['free_energy']:.2f})")
         
+        # [NEW] Chronicle Log (Major Decision)
+        if selected_path.name in ["Spark", "Attractor"]:
+            Chronicle.log(
+                action=f"QUANTUM_BIFURCATION_{selected_path.name.upper()}",
+                thinking=f"Tau={triad.tau:.2f} triggered bifurcation. Selected {selected_path.name} (F={q_decision['free_energy']:.2f})",
+                risk=f"System Energy={triad.energy:.2f}",
+                execution=f"Activated {selected_path.name} Mode"
+            )
+        
         # 1.4.5 Kill Switch: Monomania Check
         if self._check_monomania():
             print("💀 KILL SWITCH ACTIVATED: Monomania Detected (Looping Thought Pattern)")
@@ -676,13 +741,29 @@ class SpineEngine:
             "Rational": ReasoningMode.RATIONAL,
             "Empathy": ReasoningMode.EMPATHY,
             "Creative": ReasoningMode.CREATIVE,
-            "Critical": ReasoningMode.CRITICAL
+            "Critical": ReasoningMode.CRITICAL,
+            "Attractor": ReasoningMode.RATIONAL,
+            "Spark": ReasoningMode.CREATIVE
         }
         reasoning_mode = mode_map.get(selected_path.name, ReasoningMode.RATIONAL)
         # --- QUANTUM LAYER END ---
         
         # 1.6 Reason (Multi-Perspective)
-        thought_trace = self.reasoning_engine.process(user_input, reasoning_mode)
+        # Recall Memories
+        memories = self.hippocampus.recall(user_input)
+        context_str = ""
+        if memories:
+            print(f"🧠 [Hippocampus] Recalled {len(memories)} facts:")
+            for m in memories:
+                print(f"  - {m.content} (Imp={m.importance:.2f})")
+                context_str += f"- {m.content}\n"
+        
+        # Augment input with context for reasoning (but keep original for ledger)
+        augmented_input = user_input
+        if context_str or visual_context:
+            augmented_input = f"[Context Memory]:\n{context_str}\n{visual_context}\n[User Input]:\n{user_input}"
+
+        thought_trace = self.reasoning_engine.process(augmented_input, reasoning_mode)
         
         # 2. Judge
         decision = self.guardian.judge(triad)
@@ -774,6 +855,18 @@ class SpineEngine:
             # Override thought trace with council output
             thought_trace.reasoning = response_text
         
+        elif "/hunt" in user_input:
+            topic = user_input.replace("/hunt", "").strip()
+            print(f"  [Spine] 🏹 Hunting for knowledge about: {topic}")
+            papers = self.metabolism.hunt_for_papers(topic)
+            if papers:
+                response_text = f"**Hunt Successful!** (Energy Recharged)\n\n"
+                for p in papers:
+                    response_text += f"**Title:** {p['title']}\n**Summary:** {p['summary'][:200]}...\n**Link:** {p['link']}\n\n"
+            else:
+                response_text = "**Hunt Failed.** (Energy Consumed but no prey found)\n"
+            thought_trace.reasoning = response_text
+
         elif self.llm_provider and decision['allowed']:
             print("🤖 Delegating response generation to LLM...")
             system_prompt = (
@@ -786,9 +879,17 @@ class SpineEngine:
             llm_response = self.llm_provider.generate(user_input, system_prompt=system_prompt)
             thought_trace.reasoning = llm_response
         
+        
+        # 6. Recursive Re-entry (Feedback Loop)
+        if thought_trace and thought_trace.reasoning:
+             self.sensor.ingest_system_response(thought_trace.reasoning)
+
         return record, modulation, thought_trace
 
 
+    def _check_monomania(self) -> bool:
+        """Checks if the soul is stuck in a single mode for too long."""
+        history = self.quantum_kernel.history
     def _check_monomania(self) -> bool:
         """Checks if the soul is stuck in a single mode for too long."""
         history = self.quantum_kernel.history
@@ -801,76 +902,44 @@ class SpineEngine:
         return all(p.name == first_mode for p in last_10)
 
     def _perform_hard_reset(self, reason: str):
-        """Executes a Hard Kill Switch reset."""
-        print(f"⚡ EXECUTING HARD RESET: {reason}")
-        # 1. Reset Quantum Kernel History
-        self.quantum_kernel.history = []
-        # 2. Reset Plasticity (Optional, maybe we want to keep learning? No, kill switch kills habits too)
-        self.quantum_kernel.plasticity_map = {} 
-        # 3. Reset Internal Sense
-        self.internal_sense = InternalSense()
-        # 4. Log the death event
-        self.ledger.append(
-            user_input="[SYSTEM]",
-            triad=ToneSoulTriad(0,0,0,0),
-            decision={"allowed": True, "mode": "KILL_SWITCH", "reason": reason},
-            vow_id="system-reset",
-            reasoning_mode="Critical"
-        )
-
-    def _create_system_record(self, user_input: str, message: str):
-        """Helper to create a record during emergency."""
-        from core.quantum.superposition import ThoughtPath # Local import to avoid circular if needed
-        # Mock objects to return valid tuple
-        record = self.ledger.append(
-            user_input=user_input,
-            triad=ToneSoulTriad(0,0,0,0),
-            decision={"allowed": False, "mode": "SYSTEM_HALT", "reason": message, "fallback": message},
-            vow_id="system-halt",
-            reasoning_mode="Critical"
-        )
-        # Mock modulation and thought
-        modulation = {}
-        # We need a dummy thought trace object or similar if expected by caller
-        # But caller expects (record, modulation, thought_trace)
-        # Let's just return None for thought_trace and handle it in caller if needed.
-        # Actually, let's create a dummy thought object if possible.
-        # Since ReasoningEngine returns a ThoughtTrace, we should probably mock it.
-        # For now, returning None might break _interactive_loop.
-        # Let's fix _interactive_loop to handle None thought.
-        return record
+        print(f"HARD RESET TRIGGERED: {reason}")
+        # In a real system, this would clear memory or restart processes.
+        self.sensor.context_vector = [0.0] * 5
+        self.quantum_kernel.history.clear()
+        pass
 
 def _interactive_loop():
-    engine = SpineEngine(accuracy_mode="light")
-    print("ToneSoul Spine System (Interactive Mode)")
-    print("Type 'quit' to exit.")
-    print("Type 'dream' to trigger REM cycle.")
+    print("Initializing ToneSoul SpineEngine...")
+    engine = SpineEngine(accuracy_mode="off")
+    print("--- ToneSoul Interactive Mode (Type 'exit' to quit) ---")
     
-    while True:
-        try:
-            text = input("\nUser Input: ")
-        except EOFError:
-            break
-        
-        if not text:
-            continue
-            
-        if text.lower() == 'quit':
-            break
-            
-        if text.lower() == 'dream':
-            print("💤 Entering REM Cycle...")
-            result = engine.dreamer.analyze()
-            print(result)
-            continue
-            
-        record, mod, thought = engine.process_signal(text)
-        
-        print(f"\n--- ToneSoul Response ---")
-        print(f"Decision: {record.decision['mode']}")
-        if thought:
-            print(f"Thought: {thought.reasoning}")
-        print(f"Triad: T={record.triad.delta_t:.2f} S={record.triad.delta_s:.2f} R={record.triad.delta_r:.2f}")
+    engine.heart.start()
+    
+    try:
+        while True:
+            try:
+                user_input = input("\nUser> ")
+                if user_input.lower() in ["exit", "quit"]:
+                    break
+                
+                # Notify heart of input
+                engine.heart.notify_input()
+                
+                record, modulation, thought = engine.process_signal(user_input)
+                
+                print(f"\n--- ToneSoul Response ---")
+                print(f"Decision: {record.decision['mode']}")
+                if thought:
+                    print(f"Thought: {thought.reasoning}")
+                print(f"Triad: T={record.triad.delta_t:.2f} S={record.triad.delta_s:.2f} R={record.triad.delta_r:.2f}")
+                
+            except KeyboardInterrupt:
+                break
+            except Exception as e:
+                print(f"Error: {e}")
+    finally:
+        print("\nStopping Heartbeat...")
+        engine.heart.stop()
 
 if __name__ == "__main__":
     _interactive_loop()

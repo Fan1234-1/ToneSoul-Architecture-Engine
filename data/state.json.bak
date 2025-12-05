@@ -1,0 +1,1 @@
+{"active_island": "test_island_123", "fs": {"C": 0.8, "M": 0.8, "R": 0.8, "Gamma": 0.8}, "delta_s_recent": [0.1, -0.1], "preferred_mode": "Creative", "available_models": ["gemma3:4b"], "tool_capabilities": ["python"]}

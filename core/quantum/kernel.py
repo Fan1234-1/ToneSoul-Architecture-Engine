@@ -124,6 +124,35 @@ class QuantumKernel:
             "all_candidates": results
         }
 
+    def save_state(self, filepath: str = "quantum_state.json"):
+        """Persists the Neuroplasticity Map (Habits)."""
+        import json
+        try:
+            with open(filepath, 'w', encoding='utf-8') as f:
+                json.dump({
+                    "plasticity_map": self.plasticity_map,
+                    "history_length": len(self.history)
+                }, f, indent=2)
+            print(f"💾 [QuantumKernel] State saved to {filepath}")
+        except Exception as e:
+            print(f"⚠️ [QuantumKernel] Failed to save state: {e}")
+
+    def load_state(self, filepath: str = "quantum_state.json"):
+        """Loads the Neuroplasticity Map."""
+        import json
+        import os
+        if not os.path.exists(filepath):
+            return
+            
+        try:
+            with open(filepath, 'r', encoding='utf-8') as f:
+                data = json.load(f)
+                self.plasticity_map = data.get("plasticity_map", {})
+                # We don't necessarily load history as it's runtime session data
+            print(f"📂 [QuantumKernel] State loaded from {filepath}. {len(self.plasticity_map)} habits restored.")
+        except Exception as e:
+            print(f"⚠️ [QuantumKernel] Failed to load state: {e}")
+
 if __name__ == "__main__":
     # Quick Test
     kernel = QuantumKernel()

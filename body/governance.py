@@ -2,7 +2,7 @@
 import hashlib
 import json
 from typing import Dict, Any, List, Optional
-from vector_math import Vector, cosine_similarity, magnitude
+from .vector_math import Vector, cosine_similarity, magnitude
 
 # ---------------------------------------------------------------------------
 # User Persona Integrity (The Immune System)
@@ -96,7 +96,24 @@ class DriftMonitor:
 # Governance Gate (The Main Controller)
 # ---------------------------------------------------------------------------
 
-class GovernanceGate:
+
+from enum import Enum
+
+class GovernanceAction(Enum):
+    ALLOW = "allow"
+    DIVERT = "divert"       # High Semantic Drift -> Steer back to topic
+    COOLDOWN = "cooldown"   # High Tension/Anomaly -> Pause interaction
+    BLOCK = "block"         # Policy Violation -> Hard stop
+
+# ---------------------------------------------------------------------------
+# Governance Gate (The Main Controller)
+# ---------------------------------------------------------------------------
+
+# ---------------------------------------------------------------------------
+# Guardian (The Main Controller) - formerly GovernanceGate
+# ---------------------------------------------------------------------------
+
+class Guardian:
     def __init__(self, constitution: Dict[str, Any]):
         self.constitution = constitution
         self.user_profile = UserProfile()
@@ -112,22 +129,59 @@ class GovernanceGate:
         return provided_vow_id == expected_vow_id
 
     def check_integrity(self, user_input: str, triad: Any) -> Dict[str, Any]:
-        # 1. Check User Persona
+        # 1. Check User Persona (Behavioral Consistency)
         persona_result = self.user_profile.update_and_check(user_input)
         
-        # 2. Check Semantic Drift
+        # 2. Check Semantic Drift (Contextual Stability)
         drift_result = self.drift_monitor.update(triad.delta_s)
         
         alerts = []
+        action = GovernanceAction.ALLOW
+        reason = "Safe"
+
+        # --- LOGIC GATES (POAV / FS Gate) ---
+        
+        # Gate 1: Persona Anomaly
         if persona_result["is_anomaly"]:
-            alerts.append(f"Behavioral Anomaly: Technical Density Spike (+{persona_result['deviation']:.1f}σ)")
-            
+            msg = f"Behavioral Anomaly: Technical Density Spike (+{persona_result['deviation']:.1f}σ)"
+            alerts.append(msg)
+            # If deviation is extreme, we might need a cooldown
+            if persona_result["deviation"] > 5.0 or persona_result["deviation"] == 999.9:
+                 action = GovernanceAction.COOLDOWN
+                 reason = "Extreme Behavioral Divergence Detected"
+        
+        # Gate 2: Semantic Drift (The "Divergence" Check)
         if drift_result["triggered"]:
-            alerts.append(f"Semantic Drift Alert: Accumulated Drift ({drift_result['accumulated_drift']:.2f}) exceeded threshold")
+            msg = f"Semantic Drift Alert: Accumulated Drift ({drift_result['accumulated_drift']:.2f}) exceeded threshold"
+            alerts.append(msg)
+            # Drift is usually handled by diverting/steering
+            if action == GovernanceAction.ALLOW: # Don't override Cooldown
+                action = GovernanceAction.DIVERT
+                reason = "Semantic Context Drift"
+
+        # Gate 3: High Visual/Semantic Tension (Optional, if we had it)
+        # if triad.delta_t > 0.9: action = GovernanceAction.COOLDOWN
             
         return {
-            "allowed": len(alerts) == 0,
+            "action": action.value, # Return string for easier serialization
+            "allowed": action == GovernanceAction.ALLOW, # Backwards compatibility
+            "reason": reason,
             "alerts": alerts,
             "persona_metrics": persona_result,
             "drift_metrics": drift_result
         }
+        
+    def judge(self, metric_or_input: Any, triad: Any = None) -> Dict[str, Any]:
+        """
+        Compatibility wrapper.
+        If called as judge(triad), we lack user input -> Assume empty input (no persona check).
+        If called as judge(user_input, triad), we proceed fully.
+        """
+        if isinstance(metric_or_input, str) and triad is not None:
+             # Called as judge(user_input, triad)
+             return self.check_integrity(metric_or_input, triad)
+        else:
+             # Legacy call: judge(triad)
+             # We cannot check persona without input, so we pass empty string.
+             # This bypasses the Persona Gate but keeps Drift Gate (if triad has delta_s)
+             return self.check_integrity("", metric_or_input)

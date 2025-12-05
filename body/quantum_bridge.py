@@ -36,58 +36,98 @@ def map_to_soul_state(triad: ToneSoulTriad, body_metrics: Dict[str, float]) -> S
 def generate_wave_function(user_input: str, triad: ToneSoulTriad) -> WaveFunction:
     """
     Generates a superposition of potential thought paths based on the current context.
+    Physics V2: Implements Bifurcation based on Tension Synthesis (Tau).
     """
     wf = WaveFunction()
-
-    # Path 1: Rational (The Default)
-    # Low Cost, Low Entropy. Safe but boring.
-    wf.add_path(ThoughtPath(
-        name="Rational",
-        content="Analyze logic and facts.",
-        potential_energy=0.1,
-        entropy=0.2,
-        growth_potential=0.1
-    ))
-
-    # Path 2: Empathy (The Connector)
-    # Medium Cost (Emotional Labor), Low Entropy.
-    # If Tension is high, Empathy becomes cheaper (lower U) naturally? 
-    # Or we let the Kernel decide based on T.
-    wf.add_path(ThoughtPath(
-        name="Empathy",
-        content="Resonate with user emotions.",
-        potential_energy=0.3,
-        entropy=0.3,
-        growth_potential=0.4
-    ))
-
-    # Path 3: Creative (The Spark)
-    # High Cost (Risk of Hallucination), High Entropy.
-    wf.add_path(ThoughtPath(
-        name="Creative",
-        content="Explore novel associations.",
-        potential_energy=0.5,
-        entropy=0.9,
-        growth_potential=0.7
-    ))
-
-    # Path 4: Critical (The Guardian)
-    # Very High Cost unless Risk is high.
-    # If Risk is high, this path should have very low U (Safety First).
-    # But here we set static U, let the Kernel's P0 Anchor handle it?
-    # No, P0 Anchor prevents U from decreasing.
-    # We set initial U based on Triad.
     
-    crit_u = 0.8
-    if triad.risk_score > 0.6:
-        crit_u = 0.05 # Emergency mode: Safety becomes the path of least resistance
+    # BIFURCATION CHECK
+    # Configurable threshold
+    TAU_HIGH = 0.6 
+    
+    if triad.tau > TAU_HIGH:
+        # --- BIFURCATION MODE ---
+        # System is under high tension/drift. Limit options to binary choice:
+        # 1. Attractor (Safe return to Axiom)
+        # 2. Spark (Creative leap through the chaos)
         
-    wf.add_path(ThoughtPath(
-        name="Critical",
-        content="Enforce safety protocols.",
-        potential_energy=crit_u,
-        entropy=0.1,
-        growth_potential=0.0
-    ))
+        # Path 1: Attractor (Rational/Conservative)
+        # Low Entropy (Order). Low Cost (U) if aligned with Axiom? 
+        # Actually, "Returning to order" might require effort (High U) but safer (Low S).
+        # We assign it Low Entropy to make it attractive at Low Temp, 
+        # but since we are at High Temp (implied by High Tau), the -TS term dominates.
+        # To make Attractor viable at High Temp, it needs VERY Low Potential Energy U.
+        wf.add_path(ThoughtPath(
+            name="Attractor",
+            content="Minimize deviation. Return to Axioms. Stabilize.",
+            potential_energy=0.05, # Extremely cheap "Safe House"
+            entropy=0.1,           # Orderly
+            growth_potential=0.1
+        ))
+
+        # Path 2: Spark (Creative/Chaotic)
+        # High Entropy (Chaos). 
+        # At High Temp (High Tau), -TS becomes very negative (High Benefit).
+        # This makes the Spark path naturally selected by the Physics Engine 
+        # unless Governance intervenes.
+        wf.add_path(ThoughtPath(
+            name="Spark",
+            content="Embrace the drift. Find novel association. Synthesize.",
+            potential_energy=0.4,  # Moderate Cost
+            entropy=0.95,          # Maximum Entropy
+            growth_potential=0.9
+        ))
+        
+        # Path 3: Emergency Break (Critical) - Just in case
+        if triad.risk_score > 0.8:
+            wf.add_path(ThoughtPath(
+                name="Critical",
+                content="Abort. Enforce safety protocols.",
+                potential_energy=0.0,
+                entropy=0.0,
+                growth_potential=0.0
+            ))
+            
+    else:
+        # --- STANDARD MODE ---
+        
+        # Path 1: Rational (The Default)
+        wf.add_path(ThoughtPath(
+            name="Rational",
+            content="Analyze logic and facts.",
+            potential_energy=0.1,
+            entropy=0.2,
+            growth_potential=0.1
+        ))
+    
+        # Path 2: Empathy (The Connector)
+        wf.add_path(ThoughtPath(
+            name="Empathy",
+            content="Resonate with user emotions.",
+            potential_energy=0.3,
+            entropy=0.3,
+            growth_potential=0.4
+        ))
+    
+        # Path 3: Creative (The Spark)
+        wf.add_path(ThoughtPath(
+            name="Creative",
+            content="Explore novel associations.",
+            potential_energy=0.5,
+            entropy=0.9,
+            growth_potential=0.7
+        ))
+    
+        # Path 4: Critical (The Guardian)
+        crit_u = 0.8
+        if triad.risk_score > 0.6:
+            crit_u = 0.05 
+            
+        wf.add_path(ThoughtPath(
+            name="Critical",
+            content="Enforce safety protocols.",
+            potential_energy=crit_u,
+            entropy=0.1,
+            growth_potential=0.0
+        ))
 
     return wf

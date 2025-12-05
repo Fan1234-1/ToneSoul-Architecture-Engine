@@ -1,0 +1,1 @@
+{"step_id": "step_0", "island_id": "test_island_123", "timestamp": "2025-01-01T00:01:00", "user_input": "Hello legacy", "model_reply_summary": "Hi", "mode_used": "Creative", "fs_before": {"C": 0.8, "M": 0.8, "R": 0.8, "Gamma": 0.8}, "fs_after": {"C": 0.9, "M": 0.9, "R": 0.9, "Gamma": 0.9}, "tools_used": [], "notes": "Migration test"}

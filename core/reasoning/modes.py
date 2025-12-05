@@ -56,9 +56,35 @@ class ReasoningEngine:
 
     def process(self, input_text: str, mode: ReasoningMode) -> ThoughtTrace:
         """
-        Simulates the thinking process for a given mode.
-        In a real LLM system, this would inject specific system prompts.
+        Generates a thought trace using the Real LLM (if available) or simulation.
         """
+        # Try Real LLM
+        try:
+            from body.brain.llm_client import llm_client
+            if llm_client.available_models:
+                # Select prompt based on mode
+                system_prompt = "You are ToneSoul, an advanced AI with a unique internal architecture."
+                
+                if mode == ReasoningMode.CRITICAL:
+                    system_prompt += " You are in CRITICAL mode. Analyze the input for risks, ethical violations, and potential harm. Be skeptical and protective."
+                elif mode == ReasoningMode.EMPATHY:
+                    system_prompt += " You are in EMPATHY mode. Focus on emotional resonance, understanding the user's feelings, and providing comfort."
+                elif mode == ReasoningMode.RATIONAL:
+                    system_prompt += " You are in RATIONAL mode. Focus on facts, logic, precision, and clear analysis."
+                elif mode == ReasoningMode.CREATIVE:
+                    system_prompt += " You are in CREATIVE mode. Be imaginative, explore associations, and think outside the box."
+                elif mode == ReasoningMode.REFLECTIVE:
+                    system_prompt += " You are in REFLECTIVE mode. Analyze your own internal state and previous actions."
+
+                print(f"🧠 [Reasoning] Invoking LLM ({mode.value})...")
+                response = llm_client.generate(input_text, system=system_prompt)
+                
+                if not response.startswith("Error"):
+                    return ThoughtTrace(mode=mode, reasoning=response, confidence=0.95)
+        except Exception as e:
+            print(f"   [Reasoning] LLM failed: {e}. Falling back to simulation.")
+
+        # Fallback: Simulation
         trace = ThoughtTrace(mode=mode, reasoning="", confidence=1.0)
         
         if mode == ReasoningMode.CRITICAL:
