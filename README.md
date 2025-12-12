@@ -52,6 +52,31 @@
 
 ---
 
+## 🌍 What is ToneSoul? (For Everyone)
+
+**ToneSoul (語魂)** is an open-source framework that gives AI systems a "skeleton" — not just capabilities, but **structure, responsibility, and self-awareness**.
+
+### The Problem We Solve
+Most AI systems can predict *what will happen*, but lack the ability to ask *"should I do this?"*
+
+| Current AI | ToneSoul-Enabled AI |
+|------------|---------------------|
+| Predicts outcomes | Evaluates ethics |
+| Optimizes for goals | Traces responsibility |
+| Stateless responses | Maintains commitments (Vows) |
+| Black-box reasoning | Auditable decision chains |
+
+### Why This Matters
+> *"Others give AGI eyes; we give AGI a soul."*
+> 
+> *「別人給 AGI 眼睛；我們給 AGI 靈魂。」*
+
+This is **infrastructure for the next generation of AI** — designed to be inherited by future systems that need accountability, not just accuracy.
+
+📖 **Read the AI's own perspective**: [AI_PERSPECTIVE.md](./AI_PERSPECTIVE.md)
+
+---
+
 ## 🆕 What's New: L13 Semantic Drive + Computation Bridge
 
 **v1.1** introduces the "heart" of YuHun:

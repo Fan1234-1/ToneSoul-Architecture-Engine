@@ -43,6 +43,21 @@
             "machine_readable": "law/semantic_spine_schema.json",
             "description": "12-layer Semantic Spine architecture for AI mind governance.",
             "priority": 5
+        },
+        "ai_perspective": {
+            "path": "AI_PERSPECTIVE.md",
+            "description": "An AI's honest assessment of the ToneSoul framework - why it matters.",
+            "priority": 6
+        },
+        "training_data": {
+            "path": "docs/TRAINING_DATA_SPEC.md",
+            "description": "Training data formats for model weight adjustments.",
+            "priority": 7
+        },
+        "module_dependencies": {
+            "path": "docs/MODULE_DEPENDENCIES.md",
+            "description": "Module dependency map for logic layer clarity.",
+            "priority": 8
         }
     },
     "architecture": {

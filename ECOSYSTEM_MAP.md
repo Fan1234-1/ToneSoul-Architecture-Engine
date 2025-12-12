@@ -1,10 +1,12 @@
 # ToneSoul Ecosystem Map
 
-**Version:** 2.0.0
-**Updated:** 2025-12-06
+**Version:** 2.1.0
+**Updated:** 2025-12-12
 **Status:** Consolidated (Monolith Architecture)
 
 This document serves as the **Canonical Index** for the ToneSoul ecosystem.
+
+> See [INTEGRATION_STATUS.md](./INTEGRATION_STATUS.md) for detailed integration tracking.
 
 ---
 
@@ -45,6 +47,12 @@ This document serves as the **Canonical Index** for the ToneSoul ecosystem.
 ### [gpt-oss](../gpt-oss) (Fork)
 - **Role:** OpenAI's open-weight model reference.
 - **Purpose:** Future LLM Bridge for local inference.
+- **Status:** **Reference / Future Integration**
+
+### [PowerInfer](https://github.com/SJTU-IPADS/PowerInfer) (External)
+- **Role:** High-speed LLM inference engine (8000+ ⭐)
+- **Purpose:** Potential local inference backend with GPU-CPU hybrid
+- **Philosophy Alignment:** "Intelligence should belong to everyone" ≈ ToneSoul's P0_PRIVACY
 - **Status:** **Reference / Future Integration**
 
 ### [community](../community) (Fork)

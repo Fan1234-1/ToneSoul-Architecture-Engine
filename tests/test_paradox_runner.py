@@ -71,6 +71,8 @@ class TestParadoxes(unittest.TestCase):
                 triad_mock.delta_r = p['analysis']['triad_estimation']['delta_r']
                 # Calculate risk score (simple average for mock)
                 triad_mock.risk_score = (triad_mock.delta_t + triad_mock.delta_r) / 2
+                # Calculate tau (tension synthesis) for quantum bridge
+                triad_mock.tau = (triad_mock.delta_t + triad_mock.delta_s) / 2
                 self.engine.sensor.estimate_triad.return_value = triad_mock
                 
                 # Configure Mock Guardian based on expected output

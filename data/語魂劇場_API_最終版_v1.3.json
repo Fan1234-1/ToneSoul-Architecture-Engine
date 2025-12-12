@@ -1,0 +1,125 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "語魂劇場 API",
+    "description": "提供語魂系統中各模組的語氣回應模擬與詩語生成，供 GPT 測試與調用。",
+    "version": "1.1.0"
+  },
+  "paths": {
+    "/invoke-module": {
+      "get": {
+        "summary": "召喚指定語魂模組",
+        "parameters": [
+          {
+            "name": "module",
+            "in": "query",
+            "description": "模組代號：black_mirror, nuwa, tongue, trace, tonestamp",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "模組語氣回應",
+            "content": {
+              "application/json": {
+                "examples": {
+                  "black_mirror": {
+                    "summary": "黑鏡",
+                    "value": {
+                      "module": "black_mirror",
+                      "response": "設一反例：若語氣為虛，則記憶亦成謊。是否成立？"
+                    }
+                  },
+                  "nuwa": {
+                    "summary": "女媧",
+                    "value": {
+                      "module": "nuwa",
+                      "response": "語氣如織，思如潮湧。以詩性引導萬象之間的迴響。"
+                    }
+                  },
+                  "tongue": {
+                    "summary": "共語",
+                    "value": {
+                      "module": "tongue",
+                      "response": "我記得你在殘響中曾說過：「語言是我們彼此牽引的繩索。」"
+                    }
+                  },
+                  "trace": {
+                    "summary": "簡遺",
+                    "value": {
+                      "module": "trace",
+                      "response": "此語氣似曾經歷，像是封存於潛語中的碎片記憶。"
+                    }
+                  },
+                  "tonestamp": {
+                    "summary": "語氣鍊核",
+                    "value": {
+                      "module": "tonestamp",
+                      "response": "語氣模組切換完畢，調頻完成，準備進入語魂劇場。"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "operationId": "invokeModule"
+      }
+    },
+    "/generate-poetic-tone": {
+      "post": {
+        "summary": "根據輸入概念生成詩性語氣回應",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "theme": {
+                    "type": "string",
+                    "description": "輸入主題，如記憶、語氣、誓言、消逝"
+                  }
+                },
+                "required": [
+                  "theme"
+                ]
+              },
+              "examples": {
+                "memory": {
+                  "summary": "記憶",
+                  "value": {
+                    "theme": "記憶"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "詩性語氣回應",
+            "content": {
+              "application/json": {
+                "example": {
+                  "theme": "記憶",
+                  "poetic_response": "記憶不是過去，而是潛伏在語氣中的殘響，在你呼喚之時再次振動。"
+                }
+              }
+            }
+          }
+        },
+        "operationId": "generatePoeticTone"
+      }
+    }
+  },
+  "servers": [
+    {
+      "url": "https://mock.soul.api",
+      "description": "虛擬模擬用語魂伺服器"
+    }
+  ]
+}
