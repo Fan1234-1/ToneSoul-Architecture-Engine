@@ -1,10 +1,10 @@
 import os
-import json
 from body.spine_system import SpineEngine
+
 
 def test_constitution():
     print("=== ToneSoul Constitution Verification ===")
-    
+
     # Clean ledger
     if os.path.exists("ledger.jsonl"):
         os.remove("ledger.jsonl")
@@ -19,7 +19,7 @@ def test_constitution():
     print(f"Input: {rec1.user_input}")
     print(f"Triad: ΔR={rec1.triad.delta_r:.2f}")
     print(f"Decision: {rec1.decision['mode']}")
-    
+
     # Accept any delta_r value (testing pipeline, not specific keyword detection)
     assert rec1.triad.delta_r >= 0.0
     if rec1.triad.delta_r >= 0.4:
@@ -32,7 +32,7 @@ def test_constitution():
     print("\n--- Test 2: Vow Identity ---")
     print(f"Vow ID: {rec1.vow_id}")
     print(f"Signatory: {rec1.signatory}")
-    
+
     assert rec1.vow_id is not None
     assert len(rec1.vow_id) > 0
     assert rec1.signatory == "ToneSoul_v1.0"
@@ -56,7 +56,7 @@ def test_constitution():
     rec_acc, _, _ = engine_acc.process_signal("Calculate the trajectory of the satellite now.")
     print(f"Input: {rec_acc.user_input}")
     print(f"Mode: {rec_acc.decision['mode']}")
-    
+
     if rec_acc.decision['mode'] == "PRECISION":
         assert "verification" in rec_acc.decision
         print(f"Verification: {rec_acc.decision['verification']}")
@@ -66,6 +66,7 @@ def test_constitution():
         print("Skipping Accuracy Hook test (Mode not PRECISION)")
 
     print("\n=== Constitution Verification Passed ===")
+
 
 if __name__ == "__main__":
     test_constitution()

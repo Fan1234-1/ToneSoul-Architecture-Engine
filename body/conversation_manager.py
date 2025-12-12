@@ -14,11 +14,13 @@ except ImportError:
     PersonaLibrary = None
     PersonaProfile = None
 
+
 @dataclass
 class Goal:
     """Simple container for a conversation goal."""
     name: str
     description: str = ""
+
 
 class ConversationManager:
     """Manage conversation-level goals, collect feedback, and choose a strategy.

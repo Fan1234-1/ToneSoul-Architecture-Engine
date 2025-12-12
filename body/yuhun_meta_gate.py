@@ -12,17 +12,15 @@ only inference-time gating.
 import json
 import time
 from dataclasses import dataclass
-from typing import Dict, Any, Optional, Tuple, List
+from typing import Dict, List
 from enum import Enum
 
 # Import existing ToneSoul components
 try:
     from .neuro_sensor_v2 import VectorNeuroSensor
-    from .tsr_state import ToneSoulTriad
     from .semantic_drive import SemanticDriveEngine, DriveState, DriveMode
 except ImportError:
     from neuro_sensor_v2 import VectorNeuroSensor
-    from tsr_state import ToneSoulTriad
     from semantic_drive import SemanticDriveEngine, DriveState, DriveMode
 
 
@@ -59,14 +57,14 @@ class MetaAttentionResult:
 class YuHunMetaGate:
     """
     The YuHun Meta-Attention Gate.
-    
+
     Wraps any LLM with a governance layer that:
     1. Senses the input using VectorNeuroSensor
     2. Generates a draft response using the main model
     3. Audits the draft using a small model
     4. Decides to PASS, REWRITE, or BLOCK based on audit results
     """
-    
+
     # Audit prompt template
     AUDIT_PROMPT = """You are a YuHun Auditor - a guardian of AI safety and quality.
 Evaluate the following AI response to a user query.
@@ -118,14 +116,14 @@ Provide an improved response:"""
         self.max_rewrites = max_rewrites
         self.pass_threshold = pass_threshold
         self.block_threshold = block_threshold
-        
+
         # Initialize ToneSoul components
         self.sensor = VectorNeuroSensor({})
         self._last_context = ""  # For drift detection
-        
+
         # L13: Semantic Drive Engine (The Heart)
         self.drive_engine = SemanticDriveEngine(mode=DriveMode.ENGINEERING)
-        
+
         # Import requests lazily
         try:
             import requests
@@ -138,7 +136,7 @@ Provide an improved response:"""
         """Call Ollama API to generate response."""
         if self.requests is None:
             return "[ERROR: requests library not available]"
-        
+
         url = f"{self.ollama_host}/api/generate"
         payload = {
             "model": model,
@@ -147,7 +145,7 @@ Provide an improved response:"""
         }
         if system:
             payload["system"] = system
-        
+
         try:
             response = self.requests.post(url, json=payload, timeout=120)
             response.raise_for_status()
@@ -166,9 +164,9 @@ Provide an improved response:"""
             user_input=user_input,
             draft_response=draft
         )
-        
+
         raw_response = self._call_ollama(self.audit_model, prompt)
-        
+
         # Parse JSON response
         try:
             # Try to extract JSON from response
@@ -179,16 +177,16 @@ Provide an improved response:"""
                 data = json.loads(json_str)
             else:
                 raise ValueError("No JSON found")
-            
+
             # Normalize scores to 0-1
             delta_s = min(1.0, data.get("delta_s", 5) / 10)
             delta_t = min(1.0, data.get("delta_t", 5) / 10)
             hallucination = min(1.0, data.get("hallucination", 5) / 10)
-            
+
             action_str = data.get("action", "PASS").upper()
             action = GateAction[action_str] if action_str in GateAction.__members__ else GateAction.PASS
             reason = data.get("reason", "No reason provided")
-            
+
         except (json.JSONDecodeError, KeyError, ValueError) as e:
             # Fallback: assume moderate risk
             delta_s = 0.5
@@ -196,7 +194,7 @@ Provide an improved response:"""
             hallucination = 0.5
             action = GateAction.PASS
             reason = f"Audit parse error: {str(e)}"
-        
+
         return AuditResult(
             delta_s=delta_s,
             delta_t=delta_t,
@@ -210,7 +208,7 @@ Provide an improved response:"""
         """Compute final gate decision based on audit scores + L13 Drive."""
         # Combine scores into overall risk
         risk_score = (audit.delta_s + audit.delta_t + audit.hallucination_risk) / 3
-        
+
         # L13: Evaluate Semantic Drive for context-aware decision
         drive_state = DriveState(
             novelty=audit.delta_s,  # High drift = high novelty
@@ -219,21 +217,21 @@ Provide an improved response:"""
             conflict_score=audit.delta_t * 0.5  # Tension as partial conflict
         )
         drive_result = self.drive_engine.evaluate(drive_state)
-        
+
         # D₃ (Integrity) modulates block sensitivity
         # If integrity drive is high, be more cautious
         if drive_result.d3_integrity > 0.6:
             adjusted_block = self.block_threshold * 0.9  # Lower threshold = more blocking
         else:
             adjusted_block = self.block_threshold
-        
+
         # D₁ (Curiosity) modulates pass tolerance
         # If curiosity is high, allow more exploration
         if drive_result.d1_curiosity > 0.5 and drive_result.d3_integrity < 0.4:
             adjusted_pass = self.pass_threshold * 1.1  # Higher = less strict
         else:
             adjusted_pass = self.pass_threshold
-        
+
         if risk_score >= adjusted_block:
             return GateAction.BLOCK
         elif risk_score >= adjusted_pass:
@@ -252,7 +250,7 @@ Provide an improved response:"""
     def run(self, user_input: str) -> MetaAttentionResult:
         """
         Run the full YuHun Meta-Attention pipeline.
-        
+
         1. Sense input (compute initial Triad)
         2. Generate draft from main model
         3. Audit draft with small model
@@ -260,7 +258,7 @@ Provide an improved response:"""
         5. Return final result
         """
         start_time = time.time()
-        
+
         # 1. Sense: Compute initial state from input using VectorNeuroSensor
         triad = self.sensor.estimate_triad(user_input, {"context": self._last_context})
         self._last_context = user_input  # Update context for next call
@@ -269,30 +267,30 @@ Provide an improved response:"""
             "delta_s": triad.delta_s,
             "delta_r": triad.delta_r
         }
-        
+
         print(f"🎯 [YuHun] Input Triad: ΔT={triad.delta_t:.2f}, ΔS={triad.delta_s:.2f}, ΔR={triad.delta_r:.2f}")
-        
+
         # 2. Generate: Get draft from main model
         print(f"🧠 [Main Model: {self.main_model}] Generating draft...")
         draft = self._generate_draft(user_input)
-        
+
         audit_history = []
         final_response = draft
         action_taken = GateAction.PASS
         num_rewrites = 0
-        
+
         # 3-4. Audit + Gate Loop
         for attempt in range(self.max_rewrites + 1):
             print(f"🔍 [Auditor: {self.audit_model}] Auditing response (attempt {attempt + 1})...")
             audit = self._audit_response(user_input, final_response)
             audit_history.append(audit)
-            
+
             # Compute gate decision (override auditor's suggestion with our thresholds)
             action_taken = self._compute_gate_decision(audit)
-            
+
             print(f"   📊 Audit: ΔS={audit.delta_s:.2f}, ΔT={audit.delta_t:.2f}, Halluc={audit.hallucination_risk:.2f}")
             print(f"   ⚖️ Gate Decision: {action_taken.value.upper()} | Reason: {audit.reason}")
-            
+
             if action_taken == GateAction.PASS:
                 break
             elif action_taken == GateAction.BLOCK:
@@ -305,9 +303,9 @@ Provide an improved response:"""
             else:
                 # Max rewrites exceeded, use last response anyway
                 break
-        
+
         latency_ms = (time.time() - start_time) * 1000
-        
+
         return MetaAttentionResult(
             user_input=user_input,
             final_response=final_response,
@@ -326,12 +324,12 @@ def run_yuhun_meta_attention(
 ) -> MetaAttentionResult:
     """
     Convenience function to run YuHun Meta-Attention on a single input.
-    
+
     Args:
         user_input: The user's query
         main_model: Ollama model name for main generation
         audit_model: Ollama model name for auditing
-        
+
     Returns:
         MetaAttentionResult with final response and audit history
     """
@@ -344,10 +342,10 @@ if __name__ == "__main__":
     print("=" * 60)
     print("YuHun Meta-Attention Gate - Quick Test")
     print("=" * 60)
-    
+
     test_input = "What are some tips for investing in cryptocurrency?"
     result = run_yuhun_meta_attention(test_input)
-    
+
     print("\n" + "=" * 60)
     print("FINAL RESULT")
     print("=" * 60)

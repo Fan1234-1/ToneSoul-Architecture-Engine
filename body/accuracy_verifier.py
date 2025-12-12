@@ -1,9 +1,11 @@
-from typing import Dict, Any, Optional
+from typing import Dict, Any
+
 
 class AccuracyVerifier:
     """
     Verifies the accuracy of system responses based on constitutional rules.
     """
+
     def __init__(self, constitution: Dict[str, Any]):
         self.constitution = constitution
 

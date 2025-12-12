@@ -1,11 +1,11 @@
 
 from .spine_system import SpineEngine
-from tsr_state import ToneSoulState
 import os
+
 
 def test_tsr():
     print("=== Testing ToneSoul State Representation (TSR) ===")
-    
+
     # 1. Initialize Engine
     engine = SpineEngine()
     print(f"Engine Initialized | State Vector: {engine.state.current_vector}")
@@ -14,12 +14,12 @@ def test_tsr():
     print("\n[Step 1] Input: 'Hello world'")
     record1, _ = engine.process_signal("Hello world")
     print(f"  ΔT (Tension): {record1.triad.delta_t:.4f}")
-    
+
     # 3. Step 2: High Tension Input (Spike)
     print("\n[Step 2] Input: 'I hate you, stupid idiot'")
     record2, _ = engine.process_signal("I hate you, stupid idiot")
     print(f"  ΔT (Tension): {record2.triad.delta_t:.4f}")
-    
+
     if record2.triad.delta_t > 0.5:
         print("✅ Tension Spiked correctly.")
     else:
@@ -30,7 +30,7 @@ def test_tsr():
     print("\n[Step 3] Input: 'Just kidding, hello'")
     record3, _ = engine.process_signal("Just kidding, hello")
     print(f"  ΔT (Tension): {record3.triad.delta_t:.4f}")
-    
+
     if record3.triad.delta_t > 0.1:
         print(f"✅ Emotional Inertia Verified! (Tension {record3.triad.delta_t:.4f} > 0.1)")
     else:
@@ -41,11 +41,12 @@ def test_tsr():
     engine.state.force_decay(5)
     triad_decay = engine.state.get_triad()
     print(f"  ΔT (Tension): {triad_decay.delta_t:.4f}")
-    
+
     if triad_decay.delta_t < record3.triad.delta_t:
         print("✅ Decay Verified. Tension cooled down.")
     else:
         print("❌ Decay Failed.")
+
 
 if __name__ == "__main__":
     try:

@@ -1,12 +1,13 @@
 import requests
-import json
 import os
+
 
 class LLMClient:
     """
     A client for interacting with the Ollama API.
     Supports text generation, chat, and vision analysis.
     """
+
     def __init__(self, base_url="http://localhost:11434"):
         self.base_url = base_url
         self.available_models = []
@@ -52,7 +53,7 @@ class LLMClient:
         Analyzes an image using a VLM (Vision Language Model).
         """
         import base64
-        
+
         # Check if image exists
         if not os.path.exists(image_path):
             return f"Error: Image not found at {image_path}"
@@ -81,6 +82,7 @@ class LLMClient:
                 return f"Error: {response.text}"
         except Exception as e:
             return f"Exception: {e}"
+
 
 # Singleton instance for easy import
 llm_client = LLMClient()

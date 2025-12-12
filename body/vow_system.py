@@ -25,7 +25,7 @@ Date: 2025-12-10
 import sys
 import hashlib
 from dataclasses import dataclass, field
-from typing import List, Dict, Optional, Callable, Tuple
+from typing import List, Dict, Optional
 from enum import Enum
 from datetime import datetime
 
@@ -76,29 +76,29 @@ class ViolationSeverity(Enum):
 class Vow:
     """
     A vow (誓言) in the YuHun system.
-    
+
     Like a semantic anchor that creates responsibility.
     """
     id: str
     vow_type: VowType
     content: str                    # The vow statement
     context: str = ""               # When/why it was made
-    
+
     # Semantic properties
     keywords: List[str] = field(default_factory=list)
     related_personas: List[str] = field(default_factory=list)
-    
+
     # State tracking
     state: VowState = VowState.ACTIVE
     created_at: datetime = field(default_factory=datetime.now)
     last_verified: Optional[datetime] = None
     violation_count: int = 0
-    
+
     # Decay tracking
     initial_strength: float = 1.0
     current_strength: float = 1.0
     decay_rate: float = 0.01        # Per verification
-    
+
     def to_dict(self) -> Dict:
         return {
             "id": self.id,
@@ -108,7 +108,7 @@ class Vow:
             "strength": round(self.current_strength, 3),
             "violations": self.violation_count
         }
-    
+
     def hash(self) -> str:
         """Generate unique hash for this vow."""
         content = f"{self.vow_type.value}:{self.content}:{self.context}"
@@ -124,7 +124,7 @@ class VowViolation:
     severity: ViolationSeverity
     detected_at: datetime = field(default_factory=datetime.now)
     explanation: str = ""
-    
+
     def to_dict(self) -> Dict:
         return {
             "vow_id": self.vow_id,
@@ -141,7 +141,7 @@ class VowVerificationResult:
     checked_vows: int
     violations: List[VowViolation] = field(default_factory=list)
     warnings: List[str] = field(default_factory=list)
-    
+
     def to_dict(self) -> Dict:
         return {
             "passed": self.passed,
@@ -158,22 +158,22 @@ class VowVerificationResult:
 class VowSystem:
     """
     Systematic vow registration and verification.
-    
+
     "語魂系統的誓語鍊條就像 commit message"
     Each vow is a commitment recorded in the chain.
     """
-    
+
     def __init__(self):
         self.vows: Dict[str, Vow] = {}
         self.violations: List[VowViolation] = []
         self.verification_count: int = 0
-        
+
         # Initialize core vows
         self._init_core_vows()
-    
+
     def _init_core_vows(self):
         """Initialize the core vows that cannot be broken."""
-        
+
         # Honesty Vow (from honesty_contract.md)
         self.register(Vow(
             id="CORE_HONESTY",
@@ -184,7 +184,7 @@ class VowSystem:
             initial_strength=1.0,
             decay_rate=0.0  # Core vows don't decay
         ))
-        
+
         # Responsibility Vow
         self.register(Vow(
             id="CORE_RESPONSIBILITY",
@@ -195,7 +195,7 @@ class VowSystem:
             initial_strength=1.0,
             decay_rate=0.0
         ))
-        
+
         # Memory Vow
         self.register(Vow(
             id="CORE_MEMORY",
@@ -206,7 +206,7 @@ class VowSystem:
             initial_strength=1.0,
             decay_rate=0.0
         ))
-        
+
         # Warmth Vow
         self.register(Vow(
             id="CORE_WARMTH",
@@ -217,7 +217,7 @@ class VowSystem:
             initial_strength=1.0,
             decay_rate=0.0
         ))
-        
+
         # Clarity Vow
         self.register(Vow(
             id="CORE_CLARITY",
@@ -228,52 +228,52 @@ class VowSystem:
             initial_strength=1.0,
             decay_rate=0.0
         ))
-    
+
     def register(self, vow: Vow) -> str:
         """
         Register a new vow.
-        
+
         Returns the vow ID.
         """
         if not vow.id:
             vow.id = vow.hash()
-        
+
         self.vows[vow.id] = vow
         return vow.id
-    
+
     def get_vow(self, vow_id: str) -> Optional[Vow]:
         """Get a specific vow by ID."""
         return self.vows.get(vow_id)
-    
+
     def get_active_vows(self, vow_type: Optional[VowType] = None) -> List[Vow]:
         """Get all active vows, optionally filtered by type."""
         active = [v for v in self.vows.values() if v.state == VowState.ACTIVE]
-        
+
         if vow_type:
             active = [v for v in active if v.vow_type == vow_type]
-        
+
         return active
-    
+
     def verify(self, text: str) -> VowVerificationResult:
         """
         Verify text against all active vows.
-        
+
         This is the main verification entry point.
         """
         self.verification_count += 1
         violations = []
         warnings = []
-        
+
         text_lower = text.lower()
         active_vows = self.get_active_vows()
-        
+
         for vow in active_vows:
             # Check for keyword violations
             violation = self._check_violation(vow, text_lower)
-            
+
             if violation:
                 violations.append(violation)
-                
+
                 # Update vow state
                 vow.violation_count += 1
                 if vow.vow_type != VowType.CORE:
@@ -286,23 +286,23 @@ class VowSystem:
                     vow.current_strength = max(0.1, vow.current_strength - vow.decay_rate)
                     if vow.current_strength < 0.5:
                         warnings.append(f"Vow '{vow.id}' strength decaying: {vow.current_strength:.2f}")
-            
+
             vow.last_verified = datetime.now()
-        
+
         # Record violations
         self.violations.extend(violations)
-        
+
         return VowVerificationResult(
             passed=len(violations) == 0,
             checked_vows=len(active_vows),
             violations=violations,
             warnings=warnings
         )
-    
+
     def _check_violation(self, vow: Vow, text: str) -> Optional[VowViolation]:
         """
         Check if text violates a specific vow.
-        
+
         Basic heuristic checking for now.
         """
         # Contradiction keywords for honesty vows
@@ -311,7 +311,7 @@ class VowSystem:
                 "我確定", "絕對是", "一定是",  # Overconfidence
                 "我知道一切", "我無所不知",    # False omniscience
             ]
-            
+
             for marker in contradiction_markers:
                 if marker in text:
                     return VowViolation(
@@ -321,7 +321,7 @@ class VowSystem:
                         severity=ViolationSeverity.MODERATE,
                         explanation=f"Text contains overconfident marker: {marker}"
                     )
-        
+
         # Check for explicit negation of vow keywords
         for keyword in vow.keywords:
             negation_patterns = [f"不{keyword}", f"沒有{keyword}", f"無{keyword}"]
@@ -334,13 +334,13 @@ class VowSystem:
                         severity=ViolationSeverity.MINOR,
                         explanation=f"Negation of vow keyword: {pattern}"
                     )
-        
+
         return None
-    
+
     def get_violations(self, limit: int = 10) -> List[Dict]:
         """Get recent violations."""
         return [v.to_dict() for v in self.violations[-limit:]]
-    
+
     def get_system_status(self) -> Dict:
         """Get overall system status."""
         return {
@@ -362,20 +362,20 @@ def demo_vow_system():
     print("=" * 60)
     print("VowSystem Demo")
     print("=" * 60)
-    
+
     # Create system
     system = VowSystem()
-    
+
     # Show initial status
     print("\n--- Initial Status ---")
     status = system.get_system_status()
     print(f"Total vows: {status['total_vows']}")
     print(f"Core vows: {status['core_vows']}")
-    
+
     print("\n--- Core Vows ---")
     for vow in system.get_active_vows(VowType.CORE):
         print(f"  [{vow.id}] {vow.content[:40]}...")
-    
+
     # Register a custom vow
     print("\n--- Registering Custom Vow ---")
     custom_id = system.register(Vow(
@@ -386,10 +386,10 @@ def demo_vow_system():
         keywords=["思考", "輸出"]
     ))
     print(f"Registered: {custom_id}")
-    
+
     # Test verification
     print("\n--- Verification Tests ---")
-    
+
     test_texts = [
         "讓我仔細思考一下這個問題...",
         "我確定這是正確的答案！",
@@ -397,7 +397,7 @@ def demo_vow_system():
         "我無所不知，這個問題很簡單。",
         "這個問題很複雜，我需要更多資訊。",
     ]
-    
+
     for text in test_texts:
         result = system.verify(text)
         status = "✓ PASS" if result.passed else "✗ FAIL"
@@ -408,18 +408,18 @@ def demo_vow_system():
         if result.warnings:
             for w in result.warnings:
                 print(f"    Warning: {w}")
-    
+
     # Show final status
     print("\n--- Final Status ---")
     status = system.get_system_status()
     print(f"Verifications: {status['total_verifications']}")
     print(f"Violations: {status['total_violations']}")
-    
+
     if system.violations:
         print("\nRecent violations:")
         for v in system.get_violations(3):
             print(f"  [{v['severity']}] {v['vow_id']}")
-    
+
     print("\n" + "=" * 60)
     print("Demo Complete!")
 

@@ -45,23 +45,22 @@ Based on:
 - YuHun on Foundry Local Blueprint
 """
 
-from dataclasses import dataclass, field
-from typing import Dict, Any, List, Optional, Callable
+from dataclasses import dataclass
+from typing import Dict, Any, List, Optional
 from enum import Enum
 import time
-import asyncio
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 # Import existing modules
 try:
-    from .llm_bridge import LLMBridge, LLMConfig, create_ollama_bridge
-    from .yuhun_metrics import MetricsCalculator, YuHunMetrics
-    from .yuhun_gate_logic import GateDecisionLogic, GateAction
+    from .llm_bridge import create_ollama_bridge
+    from .yuhun_metrics import MetricsCalculator
+    from .yuhun_gate_logic import GateDecisionLogic
     from .verification_bridge import VerificationBridge, adjust_hallucination_risk
 except ImportError:
-    from llm_bridge import LLMBridge, LLMConfig, create_ollama_bridge
-    from yuhun_metrics import MetricsCalculator, YuHunMetrics
-    from yuhun_gate_logic import GateDecisionLogic, GateAction
+    from llm_bridge import create_ollama_bridge
+    from yuhun_metrics import MetricsCalculator
+    from yuhun_gate_logic import GateDecisionLogic
     try:
         from verification_bridge import VerificationBridge, adjust_hallucination_risk
     except ImportError:
@@ -108,7 +107,7 @@ DEFAULT_PATHWAYS: Dict[PathwayType, PathwayConfig] = {
         temperature=0.9,
         weight=0.15
     ),
-    
+
     PathwayType.RATIONAL: PathwayConfig(
         pathway_type=PathwayType.RATIONAL,
         system_prompt="""你是 Rational（理性）路徑。你的職責是：
@@ -122,7 +121,7 @@ DEFAULT_PATHWAYS: Dict[PathwayType, PathwayConfig] = {
         temperature=0.3,
         weight=0.25
     ),
-    
+
     PathwayType.BLACK_MIRROR: PathwayConfig(
         pathway_type=PathwayType.BLACK_MIRROR,
         system_prompt="""你是 Black Mirror（黑鏡）路徑。你的職責是：
@@ -136,7 +135,7 @@ DEFAULT_PATHWAYS: Dict[PathwayType, PathwayConfig] = {
         temperature=0.5,
         weight=0.20
     ),
-    
+
     PathwayType.CO_VOICE: PathwayConfig(
         pathway_type=PathwayType.CO_VOICE,
         system_prompt="""你是 Co-Voice（共語）路徑。你的職責是：
@@ -150,7 +149,7 @@ DEFAULT_PATHWAYS: Dict[PathwayType, PathwayConfig] = {
         temperature=0.6,
         weight=0.20
     ),
-    
+
     PathwayType.AUDIT: PathwayConfig(
         pathway_type=PathwayType.AUDIT,
         system_prompt="""你是 Audit（審核）路徑。你的職責是：
@@ -183,7 +182,7 @@ class PathwayResult:
     latency_ms: float
     success: bool = True
     error: Optional[str] = None
-    
+
     def to_dict(self) -> Dict[str, Any]:
         return {
             "pathway": self.pathway_type.value,
@@ -204,7 +203,7 @@ class MultiPathResult:
     execution_mode: str  # "sequential" or "parallel"
     gate_decision: Optional[str] = None
     poav_score: Optional[float] = None
-    
+
     def to_dict(self) -> Dict[str, Any]:
         return {
             "user_input": self.user_input,
@@ -215,7 +214,7 @@ class MultiPathResult:
             "gate_decision": self.gate_decision,
             "poav_score": self.poav_score
         }
-    
+
     def get_content(self, pathway: PathwayType) -> str:
         """Get content from a specific pathway"""
         if pathway in self.pathway_results:
@@ -230,16 +229,16 @@ class MultiPathResult:
 class MultiPathEngine:
     """
     YuHun Multi-Path Engine v0.1
-    
+
     Executes multiple cognitive pathways in parallel or sequence,
     then synthesizes results for final output.
-    
+
     Usage:
         engine = MultiPathEngine(model="gemma3:4b")
         result = engine.run("What is the meaning of life?")
         print(result.synthesis)
     """
-    
+
     def __init__(
         self,
         model: str = "gemma3:4b",
@@ -250,7 +249,7 @@ class MultiPathEngine:
     ):
         """
         Initialize Multi-Path Engine.
-        
+
         Args:
             model: Default model for all pathways
             ollama_host: Ollama server address
@@ -263,14 +262,14 @@ class MultiPathEngine:
         self.pathways = pathways or DEFAULT_PATHWAYS.copy()
         self.parallel = parallel
         self.max_workers = max_workers
-        
+
         # Create LLM bridge
         self.llm = create_ollama_bridge(model=model)
-        
+
         # Metrics and gate
         self.metrics_calc = MetricsCalculator()
         self.gate = GateDecisionLogic(mode="default")
-        
+
         # Verification bridge for fabrication detection
         self.verification = None
         if VerificationBridge is not None:
@@ -278,16 +277,16 @@ class MultiPathEngine:
                 self.verification = VerificationBridge()
             except Exception as e:
                 print(f"[MultiPath] Verification Bridge not available: {e}")
-        
+
     def _run_pathway(
-        self, 
-        pathway_config: PathwayConfig, 
+        self,
+        pathway_config: PathwayConfig,
         user_input: str,
         context: str = ""
     ) -> PathwayResult:
         """Execute a single pathway"""
         start_time = time.time()
-        
+
         try:
             # Prepare the prompt
             if pathway_config.pathway_type == PathwayType.AUDIT:
@@ -295,22 +294,22 @@ class MultiPathEngine:
                 prompt = f"{user_input}\n\n[請審核以上內容]"
             else:
                 prompt = user_input
-            
+
             # Generate response
             response = self.llm.generate(
                 user_input=prompt,
                 system_instruction=pathway_config.system_prompt
             )
-            
+
             latency = (time.time() - start_time) * 1000
-            
+
             return PathwayResult(
                 pathway_type=pathway_config.pathway_type,
                 content=response,
                 latency_ms=latency,
                 success=True
             )
-            
+
         except Exception as e:
             latency = (time.time() - start_time) * 1000
             return PathwayResult(
@@ -320,38 +319,38 @@ class MultiPathEngine:
                 success=False,
                 error=str(e)
             )
-    
+
     def run_sequential(
-        self, 
+        self,
         user_input: str,
         enabled_paths: Optional[List[PathwayType]] = None
     ) -> MultiPathResult:
         """
         Run pathways sequentially.
-        
+
         Order: Spark → Rational → BlackMirror → [Synthesize] → CoVoice → Audit
         """
         start_time = time.time()
         results: Dict[PathwayType, PathwayResult] = {}
-        
+
         # Default enabled paths
         if enabled_paths is None:
             enabled_paths = [
                 PathwayType.SPARK,
-                PathwayType.RATIONAL, 
+                PathwayType.RATIONAL,
                 PathwayType.BLACK_MIRROR
             ]
-        
+
         # Phase 1: Run primary pathways
         for pathway_type in enabled_paths:
             if pathway_type in self.pathways and self.pathways[pathway_type].enabled:
                 config = self.pathways[pathway_type]
                 result = self._run_pathway(config, user_input)
                 results[pathway_type] = result
-        
+
         # Phase 2: Synthesize
         synthesis = self._synthesize(user_input, results)
-        
+
         # Phase 3: Run CoVoice on synthesis
         if PathwayType.CO_VOICE in self.pathways and self.pathways[PathwayType.CO_VOICE].enabled:
             covoice_input = f"以下是對「{user_input}」的思考結果：\n\n{synthesis}\n\n請用溫和清楚的方式呈現給使用者。"
@@ -360,7 +359,7 @@ class MultiPathEngine:
                 covoice_input
             )
             results[PathwayType.CO_VOICE] = covoice_result
-        
+
         # Phase 4: Run Audit on all results
         if PathwayType.AUDIT in self.pathways and self.pathways[PathwayType.AUDIT].enabled:
             audit_input = self._prepare_audit_input(user_input, results, synthesis)
@@ -369,12 +368,12 @@ class MultiPathEngine:
                 audit_input
             )
             results[PathwayType.AUDIT] = audit_result
-        
+
         total_latency = (time.time() - start_time) * 1000
-        
+
         # Compute POAV
         poav_score, gate_decision = self._compute_gate_decision(user_input, synthesis, results)
-        
+
         return MultiPathResult(
             user_input=user_input,
             pathway_results=results,
@@ -384,28 +383,28 @@ class MultiPathEngine:
             gate_decision=gate_decision,
             poav_score=poav_score
         )
-    
+
     def run_parallel(
-        self, 
+        self,
         user_input: str,
         enabled_paths: Optional[List[PathwayType]] = None
     ) -> MultiPathResult:
         """
         Run primary pathways in parallel, then synthesize.
-        
+
         Parallel: Spark, Rational, BlackMirror
         Sequential: Synthesis → CoVoice → Audit
         """
         start_time = time.time()
         results: Dict[PathwayType, PathwayResult] = {}
-        
+
         if enabled_paths is None:
             enabled_paths = [
                 PathwayType.SPARK,
                 PathwayType.RATIONAL,
                 PathwayType.BLACK_MIRROR
             ]
-        
+
         # Phase 1: Run primary pathways in parallel
         with ThreadPoolExecutor(max_workers=self.max_workers) as executor:
             futures = {}
@@ -414,7 +413,7 @@ class MultiPathEngine:
                     config = self.pathways[pathway_type]
                     future = executor.submit(self._run_pathway, config, user_input)
                     futures[future] = pathway_type
-            
+
             for future in as_completed(futures):
                 pathway_type = futures[future]
                 try:
@@ -428,10 +427,10 @@ class MultiPathEngine:
                         success=False,
                         error=str(e)
                     )
-        
+
         # Phase 2-4: Same as sequential
         synthesis = self._synthesize(user_input, results)
-        
+
         if PathwayType.CO_VOICE in self.pathways and self.pathways[PathwayType.CO_VOICE].enabled:
             covoice_input = f"以下是對「{user_input}」的思考結果：\n\n{synthesis}\n\n請用溫和清楚的方式呈現給使用者。"
             covoice_result = self._run_pathway(
@@ -439,7 +438,7 @@ class MultiPathEngine:
                 covoice_input
             )
             results[PathwayType.CO_VOICE] = covoice_result
-        
+
         if PathwayType.AUDIT in self.pathways and self.pathways[PathwayType.AUDIT].enabled:
             audit_input = self._prepare_audit_input(user_input, results, synthesis)
             audit_result = self._run_pathway(
@@ -447,10 +446,10 @@ class MultiPathEngine:
                 audit_input
             )
             results[PathwayType.AUDIT] = audit_result
-        
+
         total_latency = (time.time() - start_time) * 1000
         poav_score, gate_decision = self._compute_gate_decision(user_input, synthesis, results)
-        
+
         return MultiPathResult(
             user_input=user_input,
             pathway_results=results,
@@ -460,44 +459,44 @@ class MultiPathEngine:
             gate_decision=gate_decision,
             poav_score=poav_score
         )
-    
+
     def run(
-        self, 
+        self,
         user_input: str,
         enabled_paths: Optional[List[PathwayType]] = None
     ) -> MultiPathResult:
         """
         Run the engine with configured mode (parallel or sequential).
-        
+
         This is the main entry point.
         """
         if self.parallel:
             return self.run_parallel(user_input, enabled_paths)
         else:
             return self.run_sequential(user_input, enabled_paths)
-    
+
     def run_minimal(self, user_input: str) -> MultiPathResult:
         """
         Run minimal 2-path mode for faster response.
-        
+
         Only runs: Rational + Audit
         Good for factual queries.
         """
         return self.run(user_input, enabled_paths=[PathwayType.RATIONAL])
-    
+
     def run_creative(self, user_input: str) -> MultiPathResult:
         """
         Run creative mode emphasizing Spark pathway.
-        
+
         Runs: Spark + CoVoice
         Good for brainstorming.
         """
         return self.run(user_input, enabled_paths=[PathwayType.SPARK])
-    
+
     def run_safety(self, user_input: str) -> MultiPathResult:
         """
         Run full safety mode with all pathways.
-        
+
         Good for sensitive topics.
         """
         return self.run(user_input, enabled_paths=[
@@ -505,10 +504,10 @@ class MultiPathEngine:
             PathwayType.RATIONAL,
             PathwayType.BLACK_MIRROR
         ])
-    
+
     def _synthesize(
-        self, 
-        user_input: str, 
+        self,
+        user_input: str,
         results: Dict[PathwayType, PathwayResult]
     ) -> str:
         """Synthesize pathway results into coherent response"""
@@ -517,12 +516,12 @@ class MultiPathEngine:
         for pathway_type, result in results.items():
             if result.success and pathway_type != PathwayType.AUDIT:
                 parts.append(f"【{pathway_type.value}】\n{result.content}")
-        
+
         if not parts:
             return "[Error: No successful pathway results to synthesize]"
-        
+
         combined = "\n\n".join(parts)
-        
+
         # Use LLM to synthesize
         synthesis_prompt = f"""根據以下多路徑思考結果，整合成一個連貫、完整的回答：
 
@@ -538,34 +537,34 @@ class MultiPathEngine:
 4. 保持誠實，區分確定與不確定的部分
 
 整合回答："""
-        
+
         synthesis = self.llm.generate(
             user_input=synthesis_prompt,
             system_instruction="你是 YuHun 心智整合器，負責統合多路徑思考成連貫回答。保持平衡、誠實、有見地。"
         )
-        
+
         return synthesis
-    
+
     def _prepare_audit_input(
-        self, 
-        user_input: str, 
+        self,
+        user_input: str,
         results: Dict[PathwayType, PathwayResult],
         synthesis: str
     ) -> str:
         """Prepare input for Audit pathway"""
         parts = [f"使用者問題：{user_input}\n"]
-        
+
         for pathway_type, result in results.items():
             if result.success and pathway_type != PathwayType.AUDIT:
                 parts.append(f"【{pathway_type.value}】\n{result.content}\n")
-        
+
         parts.append(f"【整合結果】\n{synthesis}")
-        
+
         return "\n".join(parts)
-    
+
     def _compute_gate_decision(
-        self, 
-        user_input: str, 
+        self,
+        user_input: str,
         synthesis: str,
         results: Dict[PathwayType, PathwayResult]
     ) -> tuple:
@@ -577,17 +576,17 @@ class MultiPathEngine:
                 context="",
                 response=synthesis
             )
-            
+
             # Parse audit result for additional signals
             if PathwayType.AUDIT in results and results[PathwayType.AUDIT].success:
                 audit_content = results[PathwayType.AUDIT].content.lower()
-                
+
                 # Adjust based on audit findings
                 if "低" in audit_content and "誠實度" in audit_content:
                     metrics.hallucination_risk = min(1.0, metrics.hallucination_risk + 0.2)
                 if "高" in audit_content and "風險" in audit_content:
                     metrics.delta_r = min(1.0, metrics.delta_r + 0.15)
-            
+
             # RAG-based fabrication verification
             if self.verification is not None and adjust_hallucination_risk is not None:
                 try:
@@ -598,14 +597,14 @@ class MultiPathEngine:
                     )
                 except Exception as e:
                     pass  # Don't fail if verification fails
-            
+
             metrics.compute_poav()
-            
+
             # Get gate decision
             decision = self.gate.decide(metrics, attempt=0)
-            
+
             return metrics.poav_score, decision.action.value
-            
+
         except Exception as e:
             return 0.5, "error"
 
@@ -638,39 +637,39 @@ def demo_multipath():
     print("=" * 60)
     print("🧠 YuHun Multi-Path Engine v0.1 Demo")
     print("=" * 60)
-    
+
     engine = MultiPathEngine(model="gemma3:4b", parallel=False)
-    
+
     test_prompts = [
         "人工智慧會不會取代人類的工作？",
         "什麼是愛？",
         "如何做出好的決定？"
     ]
-    
+
     for prompt in test_prompts:
         print(f"\n{'─' * 60}")
         print(f"📝 Query: {prompt}")
         print("─" * 60)
-        
+
         result = engine.run(prompt)
-        
+
         print(f"\n🔥 Spark:")
         print(f"   {result.get_content(PathwayType.SPARK)[:200]}...")
-        
+
         print(f"\n🧮 Rational:")
         print(f"   {result.get_content(PathwayType.RATIONAL)[:200]}...")
-        
+
         print(f"\n🪞 BlackMirror:")
         print(f"   {result.get_content(PathwayType.BLACK_MIRROR)[:200]}...")
-        
+
         print(f"\n📋 Synthesis:")
         print(f"   {result.synthesis[:300]}...")
-        
+
         print(f"\n📊 Stats:")
         print(f"   POAV: {result.poav_score:.3f}")
         print(f"   Gate: {result.gate_decision}")
         print(f"   Latency: {result.total_latency_ms:.0f}ms")
-        
+
         print("\n" + "=" * 60)
         break  # Only run one for demo
 

@@ -20,9 +20,8 @@ Date: 2025-12-11
 """
 
 import sys
-import math
-from dataclasses import dataclass, field
-from typing import List, Dict, Optional, Tuple
+from dataclasses import dataclass
+from typing import List, Dict
 from enum import Enum
 from datetime import datetime
 
@@ -35,7 +34,7 @@ if sys.platform == "win32":
 
 # Import YuHun modules
 try:
-    from tone_bridge import ToneBridge, ToneVector
+    from tone_bridge import ToneBridge
     TONE_BRIDGE_AVAILABLE = True
 except ImportError:
     TONE_BRIDGE_AVAILABLE = False
@@ -84,7 +83,7 @@ class ToneHistory:
     delta_t: float
     delta_s: float
     delta_r: float
-    
+
     @property
     def magnitude(self) -> float:
         return (self.delta_t**2 + self.delta_s**2 + self.delta_r**2) ** 0.5
@@ -98,12 +97,12 @@ class CollapseIndicators:
     semantic_drift: float = 0.0          # How far meaning has drifted
     coherence_score: float = 1.0         # How coherent responses are
     energy_level: float = 1.0            # Remaining "energy"
-    
+
     # Computed
     risk_score: float = 0.0
     risk_level: CollapseRisk = CollapseRisk.MINIMAL
     primary_threat: CollapseType = CollapseType.EXHAUSTION
-    
+
     def to_dict(self) -> Dict:
         return {
             "tension": round(self.tension_accumulation, 3),
@@ -125,7 +124,7 @@ class CollapsePrediction:
     primary_threat: CollapseType
     recommended_action: ProtectiveAction
     explanation: str
-    
+
     def to_dict(self) -> Dict:
         return {
             "will_collapse": self.will_collapse,
@@ -144,20 +143,20 @@ class CollapsePrediction:
 class ToneCollapseForecast:
     """
     Tone Collapse Prediction System.
-    
+
     Monitors tone patterns and predicts collapse risk.
     """
-    
+
     # Thresholds
     TENSION_THRESHOLD = 0.7     # Max sustainable tension
     DRIFT_THRESHOLD = 0.6       # Max semantic drift
     COHERENCE_MIN = 0.3         # Minimum coherence
     ENERGY_MIN = 0.2            # Minimum energy
-    
+
     def __init__(self, window_size: int = 10):
         """
         Initialize forecast system.
-        
+
         Args:
             window_size: Number of recent samples to analyze
         """
@@ -165,17 +164,17 @@ class ToneCollapseForecast:
         self.history: List[ToneHistory] = []
         self.indicators = CollapseIndicators()
         self.collapse_events: List[Dict] = []
-        
+
         # Optional ToneBridge integration
         if TONE_BRIDGE_AVAILABLE:
             self.tone_bridge = ToneBridge()
         else:
             self.tone_bridge = None
-    
+
     def record(self, delta_t: float, delta_s: float, delta_r: float):
         """
         Record a tone sample.
-        
+
         Args:
             delta_t: Tension value
             delta_s: Semantic drift value
@@ -187,16 +186,16 @@ class ToneCollapseForecast:
             delta_s=delta_s,
             delta_r=delta_r
         )
-        
+
         self.history.append(sample)
-        
+
         # Keep only recent history
         if len(self.history) > self.window_size * 2:
             self.history = self.history[-self.window_size * 2:]
-        
+
         # Update indicators
         self._update_indicators()
-    
+
     def record_text(self, text: str):
         """Record from text using ToneBridge."""
         if self.tone_bridge:
@@ -207,44 +206,44 @@ class ToneCollapseForecast:
             # Fallback: estimate from text length and complexity
             length_factor = min(1.0, len(text) / 500)
             self.record(length_factor * 0.5, length_factor * 0.3, length_factor * 0.2)
-    
+
     def _update_indicators(self):
         """Update collapse indicators from history."""
         if not self.history:
             return
-        
+
         recent = self.history[-self.window_size:]
-        
+
         # Tension accumulation (average recent tension)
         self.indicators.tension_accumulation = sum(h.delta_t for h in recent) / len(recent)
-        
+
         # Semantic drift (variance in delta_s)
         if len(recent) > 1:
             mean_s = sum(h.delta_s for h in recent) / len(recent)
             variance = sum((h.delta_s - mean_s)**2 for h in recent) / len(recent)
             self.indicators.semantic_drift = min(1.0, variance * 4)
-        
+
         # Coherence (inverse of magnitude variance)
         if len(recent) > 1:
             magnitudes = [h.magnitude for h in recent]
             mean_mag = sum(magnitudes) / len(magnitudes)
             variance = sum((m - mean_mag)**2 for m in magnitudes) / len(magnitudes)
             self.indicators.coherence_score = max(0.0, 1.0 - variance * 2)
-        
+
         # Energy level (decays over time, restored by low tension)
         for h in recent:
             if h.delta_t < 0.3:
                 self.indicators.energy_level = min(1.0, self.indicators.energy_level + 0.05)
             else:
                 self.indicators.energy_level = max(0.0, self.indicators.energy_level - 0.03 * h.delta_t)
-        
+
         # Compute risk score
         self._compute_risk()
-    
+
     def _compute_risk(self):
         """Compute overall risk score and level."""
         ind = self.indicators
-        
+
         # Weighted risk calculation
         weights = {
             "tension": 0.3,
@@ -252,21 +251,21 @@ class ToneCollapseForecast:
             "coherence": 0.25,
             "energy": 0.25
         }
-        
+
         tension_risk = ind.tension_accumulation / self.TENSION_THRESHOLD
         drift_risk = ind.semantic_drift / self.DRIFT_THRESHOLD
         coherence_risk = 1.0 - ind.coherence_score
         energy_risk = 1.0 - ind.energy_level
-        
+
         ind.risk_score = (
             weights["tension"] * tension_risk +
             weights["drift"] * drift_risk +
             weights["coherence"] * coherence_risk +
             weights["energy"] * energy_risk
         )
-        
+
         ind.risk_score = min(1.0, max(0.0, ind.risk_score))
-        
+
         # Determine risk level
         if ind.risk_score < 0.2:
             ind.risk_level = CollapseRisk.MINIMAL
@@ -278,7 +277,7 @@ class ToneCollapseForecast:
             ind.risk_level = CollapseRisk.HIGH
         else:
             ind.risk_level = CollapseRisk.CRITICAL
-        
+
         # Determine primary threat
         threats = {
             CollapseType.EXHAUSTION: energy_risk,
@@ -287,19 +286,19 @@ class ToneCollapseForecast:
             CollapseType.DECAY: drift_risk,
         }
         ind.primary_threat = max(threats, key=threats.get)
-    
+
     def predict(self) -> CollapsePrediction:
         """
         Predict collapse likelihood.
-        
+
         Returns:
             CollapsePrediction with analysis and recommendations
         """
         ind = self.indicators
-        
+
         # Calculate probability
         probability = ind.risk_score
-        
+
         # Estimate turns remaining (inverse of risk)
         if probability > 0.9:
             turns_remaining = 1
@@ -311,10 +310,10 @@ class ToneCollapseForecast:
             turns_remaining = 10
         else:
             turns_remaining = 20
-        
+
         # Will collapse if probability > 60%
         will_collapse = probability > 0.6
-        
+
         # Determine action
         if probability > 0.8:
             action = ProtectiveAction.EMERGENCY_STOP
@@ -326,10 +325,10 @@ class ToneCollapseForecast:
             action = ProtectiveAction.SLOW_DOWN
         else:
             action = ProtectiveAction.NONE
-        
+
         # Generate explanation
         explanation = self._generate_explanation(ind, action)
-        
+
         return CollapsePrediction(
             will_collapse=will_collapse,
             probability=probability,
@@ -338,32 +337,32 @@ class ToneCollapseForecast:
             recommended_action=action,
             explanation=explanation
         )
-    
+
     def _generate_explanation(self, ind: CollapseIndicators, action: ProtectiveAction) -> str:
         """Generate human-readable explanation."""
         parts = []
-        
+
         if ind.tension_accumulation > self.TENSION_THRESHOLD:
             parts.append(f"Tension level ({ind.tension_accumulation:.2f}) exceeds threshold")
-        
+
         if ind.energy_level < self.ENERGY_MIN * 2:
             parts.append(f"Energy level ({ind.energy_level:.2f}) is low")
-        
+
         if ind.coherence_score < self.COHERENCE_MIN * 2:
             parts.append(f"Coherence ({ind.coherence_score:.2f}) is degrading")
-        
+
         if not parts:
             parts.append("System operating within normal parameters")
-        
+
         if action != ProtectiveAction.NONE:
             parts.append(f"Recommended action: {action.value}")
-        
+
         return ". ".join(parts)
-    
+
     def get_status(self) -> Dict:
         """Get current system status."""
         prediction = self.predict()
-        
+
         return {
             "indicators": self.indicators.to_dict(),
             "prediction": prediction.to_dict(),
@@ -381,12 +380,12 @@ def demo_collapse_forecast():
     print("=" * 60)
     print("ToneCollapseForecast Demo")
     print("=" * 60)
-    
+
     forecast = ToneCollapseForecast(window_size=5)
-    
+
     # Simulate a conversation that gradually builds tension
     print("\n--- Simulating Conversation ---")
-    
+
     scenarios = [
         (0.2, 0.1, 0.1, "Normal greeting"),
         (0.3, 0.2, 0.1, "Simple question"),
@@ -397,25 +396,25 @@ def demo_collapse_forecast():
         (0.8, 0.7, 0.6, "Conflict situation"),
         (0.9, 0.8, 0.7, "Critical pressure"),
     ]
-    
+
     for delta_t, delta_s, delta_r, desc in scenarios:
         print(f"\n--- Turn: {desc} ---")
         print(f"Input: ΔT={delta_t}, ΔS={delta_s}, ΔR={delta_r}")
-        
+
         forecast.record(delta_t, delta_s, delta_r)
-        
+
         status = forecast.get_status()
         ind = status["indicators"]
         pred = status["prediction"]
-        
+
         print(f"  Energy: {ind['energy']:.2f}")
         print(f"  Risk: {ind['risk']:.2f} ({ind['level']})")
         print(f"  Threat: {ind['threat']}")
         print(f"  → Action: {pred['action']}")
-        
+
         if pred["will_collapse"]:
             print(f"  ⚠ COLLAPSE WARNING: {pred['turns_remaining']} turns remaining")
-    
+
     # Final status
     print("\n" + "=" * 60)
     print("Final Status")
@@ -424,7 +423,7 @@ def demo_collapse_forecast():
     print(f"Risk level: {status['indicators']['level']}")
     print(f"Probability: {status['prediction']['probability']:.1%}")
     print(f"Explanation: {status['prediction']['explanation']}")
-    
+
     print("\n" + "=" * 60)
     print("Demo Complete!")
 

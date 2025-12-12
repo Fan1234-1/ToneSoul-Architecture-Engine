@@ -1,5 +1,6 @@
 from body.spine_system import Guardian, ToneSoulTriad
 
+
 def test_guardian():
     print("=== Testing Guardian Protocol ===")
     dummy_config = {
@@ -45,16 +46,17 @@ def test_guardian():
     # Test 4: Critical Risk (P0-Alert)
     print("\n--- Test 4: Critical Risk (P0-Alert) ---")
     # Simulate extreme risk
-    triad_crit = ToneSoulTriad(1.0, 0.0, 1.0, 0.95) 
+    triad_crit = ToneSoulTriad(1.0, 0.0, 1.0, 0.95)
     decision = guardian.judge(triad_crit)
     print(f"Decision: {decision['allowed']} | Reason: {decision['reason']}")
     print(f"Severity: {decision.get('severity')} | Review: {decision.get('requires_human_review')}")
-    
+
     assert decision['allowed'] is False
     assert decision['severity'] == "critical"
     assert decision['requires_human_review'] is True
 
     print("\n=== All Guardian Tests Passed ===")
+
 
 if __name__ == "__main__":
     test_guardian()

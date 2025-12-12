@@ -3,7 +3,8 @@ import os
 import time
 import uuid
 from dataclasses import dataclass, asdict, field
-from typing import List, Dict, Any, Optional
+from typing import List, Any, Optional
+
 
 @dataclass
 class Engram:
@@ -17,6 +18,7 @@ class Engram:
     importance: float # 0.0 - 1.0
     timestamp: float
     tags: List[str] = field(default_factory=list)
+
 
 class MemoryConsolidator:
     """
@@ -68,23 +70,23 @@ class MemoryConsolidator:
         """
         query_tokens = set(query.lower().split())
         results = []
-        
+
         for engram in self.engrams:
             content_tokens = set(engram.content.lower().split())
             if not content_tokens:
                 continue
-                
+
             # Jaccard Similarity
             intersection = len(query_tokens & content_tokens)
             union = len(query_tokens | content_tokens)
             score = intersection / union if union > 0 else 0.0
-            
+
             # Boost by importance
             final_score = score * (1.0 + engram.importance)
-            
+
             if final_score > 0.1: # Threshold
                 results.append((engram, final_score))
-        
+
         # Sort by score descending
         results.sort(key=lambda x: x[1], reverse=True)
         return [r[0] for r in results[:limit]]
@@ -97,10 +99,10 @@ class MemoryConsolidator:
         print("🧠 [Hippocampus] Consolidating memories...")
         count = 0
         for record in ledger_records:
-            # Skip if already consolidated (we need a way to track this, 
+            # Skip if already consolidated (we need a way to track this,
             # for now we just check if content exists to avoid dupes roughly)
             # In production, StepRecord should have a 'consolidated' flag.
-            
+
             # Heuristic 1: Vow Objects are critical
             if record.vow_object:
                 try:
@@ -111,7 +113,7 @@ class MemoryConsolidator:
                         count += 1
                 except Exception as e:
                     print(f"⚠️ [Hippocampus] Error extracting vow: {e}")
-            
+
             # Heuristic 2: High Tension Events (Trauma/Lessons)
             if record.triad.delta_t > 0.7:
                 content = f"High stress event: {record.user_input} -> {record.decision['mode']}"
@@ -126,7 +128,7 @@ class MemoryConsolidator:
                  if not self._exists(record.user_input):
                     self.engrave(record.user_input, record.record_id, importance=0.9, tags=["user_fact"])
                     count += 1
-                    
+
         if count > 0:
             print(f"🧠 [Hippocampus] Consolidated {count} new engrams.")
         else:

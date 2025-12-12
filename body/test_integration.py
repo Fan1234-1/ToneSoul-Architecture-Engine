@@ -1,9 +1,10 @@
 import os
 from body.spine_system import SpineEngine
 
+
 def test_integration():
     print("=== ToneSoul System Integration Test ===")
-    
+
     # Clean ledger
     if os.path.exists("ledger.jsonl"):
         os.remove("ledger.jsonl")
@@ -57,6 +58,7 @@ def test_integration():
     print("Hash Chain: VERIFIED")
 
     print("\n=== Integration Test Passed ===")
+
 
 if __name__ == "__main__":
     test_integration()

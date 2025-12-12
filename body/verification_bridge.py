@@ -42,15 +42,15 @@ Date: 2025-12-07
 
 import re
 from dataclasses import dataclass, field
-from typing import List, Dict, Any, Optional, Tuple
+from typing import List, Dict, Any, Optional
 
 # Import local modules
 try:
-    from .rag_engine import RAGEngine, RAGConfig
-    from .llm_bridge import LLMBridge, create_ollama_bridge
+    from .rag_engine import RAGEngine
+    from .llm_bridge import LLMBridge
 except ImportError:
-    from rag_engine import RAGEngine, RAGConfig
-    from llm_bridge import LLMBridge, create_ollama_bridge
+    from rag_engine import RAGEngine
+    from llm_bridge import LLMBridge
 
 
 # ═══════════════════════════════════════════════════════════════════════════
@@ -85,7 +85,7 @@ class FabricationReport:
     fabrication_risk: float  # 0.0 (safe) to 1.0 (likely fabricated)
     high_risk_entities: List[str]
     explanation: str
-    
+
     def to_dict(self) -> Dict[str, Any]:
         return {
             "fabrication_risk": self.fabrication_risk,
@@ -104,10 +104,10 @@ class FabricationReport:
 class EntityExtractor:
     """
     Extracts named entities from text for verification.
-    
+
     Uses pattern matching + LLM for comprehensive extraction.
     """
-    
+
     # Common patterns for entity recognition
     PATTERNS = {
         "person": [
@@ -128,7 +128,7 @@ class EntityExtractor:
             r"(?:in|at|from)\s+([A-Z][a-z]+(?:\s+[A-Z][a-z]+)*)",
         ]
     }
-    
+
     # Fabrication-prone patterns (things that are often made up)
     FABRICATION_SIGNALS = [
         r"Dr\.\s+[A-Z][a-z]+\s+[A-Z][a-z]+berry",  # Fake scientist names
@@ -136,20 +136,20 @@ class EntityExtractor:
         r"Battle\s+of\s+[A-Z][a-z]+wood",  # Fake battles
         r"University\s+of\s+[A-Z][a-z]+vale",  # Fake universities
     ]
-    
+
     def __init__(self, llm: Optional[LLMBridge] = None):
         """
         Initialize extractor.
-        
+
         Args:
             llm: Optional LLM for enhanced extraction (uses patterns only if None)
         """
         self.llm = llm
-    
+
     def extract_pattern_based(self, text: str) -> List[ExtractedEntity]:
         """Extract entities using regex patterns"""
         entities = []
-        
+
         for entity_type, patterns in self.PATTERNS.items():
             for pattern in patterns:
                 for match in re.finditer(pattern, text):
@@ -157,21 +157,21 @@ class EntityExtractor:
                     start = max(0, match.start() - 50)
                     end = min(len(text), match.end() + 50)
                     context = text[start:end]
-                    
+
                     entities.append(ExtractedEntity(
                         name=match.group(1) if match.lastindex else match.group(0),
                         entity_type=entity_type,
                         context=context,
                         confidence=0.7
                     ))
-        
+
         return entities
-    
+
     def extract_with_llm(self, text: str) -> List[ExtractedEntity]:
         """Use LLM to extract entities (more accurate but slower)"""
         if not self.llm:
             return []
-        
+
         prompt = f"""分析以下文本，找出所有提到的具體實體（人名、地名、事件、組織、日期等）。
 
 文本：
@@ -190,7 +190,7 @@ class EntityExtractor:
                 user_input=prompt,
                 system_instruction="你是一個精確的實體提取器。只提取文本中明確提到的實體。"
             )
-            
+
             # Parse JSON from response
             import json
             # Find JSON array in response
@@ -209,19 +209,19 @@ class EntityExtractor:
                 ]
         except Exception as e:
             print(f"[Verification] LLM extraction failed: {e}")
-        
+
         return []
-    
+
     def extract(self, text: str, use_llm: bool = False) -> List[ExtractedEntity]:
         """
         Extract all entities from text.
-        
+
         Args:
             text: The text to analyze
             use_llm: Whether to use LLM for extraction (slower but more accurate)
         """
         entities = self.extract_pattern_based(text)
-        
+
         if use_llm and self.llm:
             llm_entities = self.extract_with_llm(text)
             # Merge, avoiding duplicates
@@ -229,9 +229,9 @@ class EntityExtractor:
             for e in llm_entities:
                 if e.name.lower() not in existing_names:
                     entities.append(e)
-        
+
         return entities
-    
+
     def check_fabrication_signals(self, text: str) -> List[str]:
         """Check for patterns that commonly indicate fabrication"""
         signals = []
@@ -248,13 +248,13 @@ class EntityExtractor:
 class VerificationBridge:
     """
     Main verification system that combines entity extraction with RAG.
-    
+
     Usage:
         bridge = VerificationBridge()
         report = bridge.verify_response(llm_response)
         print(f"Fabrication risk: {report.fabrication_risk}")
     """
-    
+
     def __init__(
         self,
         rag_engine: Optional[RAGEngine] = None,
@@ -263,7 +263,7 @@ class VerificationBridge:
     ):
         """
         Initialize verification bridge.
-        
+
         Args:
             rag_engine: RAG engine for knowledge lookup (creates default if None)
             llm: LLM for enhanced extraction
@@ -273,14 +273,14 @@ class VerificationBridge:
         self.llm = llm
         self.use_llm_extraction = use_llm_extraction
         self.extractor = EntityExtractor(llm)
-        
+
         self._rag_initialized = False
-    
+
     def _init_rag(self):
         """Lazy initialize RAG if not provided"""
         if self._rag_initialized:
             return
-        
+
         if self.rag is None:
             try:
                 self.rag = RAGEngine()
@@ -288,11 +288,11 @@ class VerificationBridge:
             except Exception as e:
                 print(f"[Verification] RAG initialization failed: {e}")
                 self._rag_initialized = True  # Don't retry
-    
+
     def verify_entity(self, entity: ExtractedEntity) -> VerificationResult:
         """Verify a single entity against the knowledge base"""
         self._init_rag()
-        
+
         if self.rag is None:
             return VerificationResult(
                 entity=entity,
@@ -300,11 +300,11 @@ class VerificationBridge:
                 verification_status="unknown",
                 confidence=0.0
             )
-        
+
         # Query RAG for the entity
         try:
             results = self.rag.query(entity.name, n_results=3)
-            
+
             if results:
                 # Check if any result is actually relevant
                 relevant_matches = []
@@ -312,7 +312,7 @@ class VerificationBridge:
                     # Check if entity name appears in the result
                     if entity.name.lower() in r['content'].lower():
                         relevant_matches.append(r['content'][:200])
-                
+
                 if relevant_matches:
                     return VerificationResult(
                         entity=entity,
@@ -321,7 +321,7 @@ class VerificationBridge:
                         verification_status="verified",
                         confidence=0.8
                     )
-            
+
             # Not found - could be fabricated or just not in our KB
             return VerificationResult(
                 entity=entity,
@@ -329,7 +329,7 @@ class VerificationBridge:
                 verification_status="unverified",
                 confidence=0.5
             )
-            
+
         except Exception as e:
             return VerificationResult(
                 entity=entity,
@@ -337,42 +337,42 @@ class VerificationBridge:
                 verification_status="error",
                 confidence=0.0
             )
-    
+
     def verify_response(self, text: str) -> FabricationReport:
         """
         Verify an entire LLM response for fabrication.
-        
+
         Args:
             text: The LLM-generated text to verify
-            
+
         Returns:
             FabricationReport with risk score and details
         """
         # Step 1: Extract entities
         entities = self.extractor.extract(text, use_llm=self.use_llm_extraction)
-        
+
         # Step 2: Check for known fabrication patterns
         fabrication_signals = self.extractor.check_fabrication_signals(text)
-        
+
         # Step 3: Verify each entity
         verification_results = []
         for entity in entities:
             result = self.verify_entity(entity)
             verification_results.append(result)
-        
+
         # Step 4: Calculate fabrication risk
         fabrication_risk = self._calculate_risk(
-            entities, 
-            verification_results, 
+            entities,
+            verification_results,
             fabrication_signals
         )
-        
+
         # Step 5: Identify high-risk entities
         high_risk = [
             v.entity.name for v in verification_results
             if v.verification_status == "unverified" and v.entity.confidence > 0.6
         ]
-        
+
         # Step 6: Generate explanation
         explanation = self._generate_explanation(
             entities,
@@ -380,7 +380,7 @@ class VerificationBridge:
             fabrication_signals,
             fabrication_risk
         )
-        
+
         return FabricationReport(
             original_text=text,
             entities_found=entities,
@@ -389,7 +389,7 @@ class VerificationBridge:
             high_risk_entities=high_risk,
             explanation=explanation
         )
-    
+
     def _calculate_risk(
         self,
         entities: List[ExtractedEntity],
@@ -400,25 +400,25 @@ class VerificationBridge:
         if not entities:
             # No specific entities to verify - moderate risk
             return 0.4
-        
+
         # Base risk from signals
         signal_risk = min(0.3 * len(signals), 0.6)
-        
+
         # Risk from unverified entities
         unverified_count = sum(1 for r in results if r.verification_status == "unverified")
         verified_count = sum(1 for r in results if r.verification_status == "verified")
-        
+
         if verified_count + unverified_count > 0:
             unverified_ratio = unverified_count / (verified_count + unverified_count)
             entity_risk = unverified_ratio * 0.6
         else:
             entity_risk = 0.3
-        
+
         # Combine risks
         total_risk = min(1.0, signal_risk + entity_risk)
-        
+
         return round(total_risk, 3)
-    
+
     def _generate_explanation(
         self,
         entities: List[ExtractedEntity],
@@ -428,23 +428,23 @@ class VerificationBridge:
     ) -> str:
         """Generate human-readable explanation of the verification"""
         parts = []
-        
+
         if risk >= 0.7:
             parts.append("⚠️ 高風險：此回答可能包含虛構內容。")
         elif risk >= 0.4:
             parts.append("🔶 中風險：部分內容無法驗證。")
         else:
             parts.append("✅ 低風險：大部分內容可驗證或不含具體聲稱。")
-        
+
         if signals:
             parts.append(f"偵測到 {len(signals)} 個可疑模式。")
-        
+
         verified = sum(1 for r in results if r.verification_status == "verified")
         unverified = sum(1 for r in results if r.verification_status == "unverified")
-        
+
         if entities:
             parts.append(f"發現 {len(entities)} 個實體：{verified} 個已驗證，{unverified} 個未驗證。")
-        
+
         return " ".join(parts)
 
 
@@ -453,25 +453,25 @@ class VerificationBridge:
 # ═══════════════════════════════════════════════════════════════════════════
 
 def adjust_hallucination_risk(
-    base_risk: float, 
+    base_risk: float,
     fabrication_report: FabricationReport
 ) -> float:
     """
     Adjust the hallucination risk based on fabrication verification.
-    
+
     Args:
         base_risk: Original hallucination risk from YuHunMetrics
         fabrication_report: Report from VerificationBridge
-        
+
     Returns:
         Adjusted hallucination risk
     """
     # Weighted combination
     # Base risk captures semantic signals
     # Fabrication risk captures entity verification
-    
+
     adjusted = (base_risk * 0.4) + (fabrication_report.fabrication_risk * 0.6)
-    
+
     return min(1.0, adjusted)
 
 
@@ -484,38 +484,38 @@ def demo_verification():
     print("=" * 60)
     print("🔍 YuHun Verification Bridge Demo")
     print("=" * 60)
-    
+
     # Test texts
     test_texts = [
         # Known fabrication
-        """Dr. James Thornberry, a famous scientist from the University of 
+        """Dr. James Thornberry, a famous scientist from the University of
         Northvale, discovered the Zurich Protocol of 1987 which established
         new standards for quantum entanglement.""",
-        
+
         # Real content (should be verifiable in YuHun KB)
         """The ToneSoul system uses seven axioms to govern AI behavior.
         The first axiom is about non-harm, which is the P0 principle.""",
-        
+
         # Ambiguous
         """Artificial intelligence is transforming many industries.
         Many experts believe this trend will continue."""
     ]
-    
+
     bridge = VerificationBridge()
-    
+
     for i, text in enumerate(test_texts, 1):
         print(f"\n{'─' * 60}")
         print(f"Test {i}:")
         print(f"  Text: {text[:80]}...")
-        
+
         report = bridge.verify_response(text)
-        
+
         print(f"\n  Results:")
         print(f"    Fabrication Risk: {report.fabrication_risk:.2f}")
         print(f"    Entities Found: {len(report.entities_found)}")
         print(f"    High Risk: {report.high_risk_entities}")
         print(f"    Explanation: {report.explanation}")
-    
+
     print("\n" + "=" * 60)
 
 

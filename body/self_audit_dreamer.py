@@ -13,17 +13,16 @@ This is the "dreaming with purpose" module - ToneSoul can:
 
 import json
 import time
-import random
-from dataclasses import dataclass, field
-from typing import Dict, Any, List, Optional
+from dataclasses import dataclass
+from typing import Dict, List, Optional
 from pathlib import Path
 
 try:
-    from .yuhun_meta_gate import YuHunMetaGate, GateAction, AuditResult
+    from .yuhun_meta_gate import YuHunMetaGate
     from .yuhun_cot_monitor import ChainOfThoughtMonitor
     from .neuro_sensor_v2 import VectorNeuroSensor
 except ImportError:
-    from yuhun_meta_gate import YuHunMetaGate, GateAction, AuditResult
+    from yuhun_meta_gate import YuHunMetaGate
     from yuhun_cot_monitor import ChainOfThoughtMonitor
     from neuro_sensor_v2 import VectorNeuroSensor
 
@@ -43,14 +42,14 @@ class DreamInsight:
 class SelfAuditDreamer:
     """
     The Reflective Dreaming Module.
-    
+
     During idle time, the system can:
     1. Review past interactions/decisions
     2. Self-audit using YuHun Gate criteria
     3. Identify improvements and store insights
     """
-    
-    SELF_AUDIT_PROMPT = """You are a YuHun Self-Auditor. Review the following past decision/content 
+
+    SELF_AUDIT_PROMPT = """You are a YuHun Self-Auditor. Review the following past decision/content
 and provide an honest self-assessment.
 
 [Past Content to Audit]
@@ -80,16 +79,16 @@ Analysis:"""
         self.model = model
         self.insights_path = Path(insights_path)
         self.max_insights = max_insights_memory
-        
+
         # Core components
         self.sensor = VectorNeuroSensor({})
         self.gate = YuHunMetaGate(main_model=model, audit_model=model)
         self.cot_monitor = ChainOfThoughtMonitor(model=model)
-        
+
         # Insights storage
         self.insights: List[DreamInsight] = []
         self._load_insights()
-        
+
         try:
             import requests
             self.requests = requests
@@ -111,7 +110,7 @@ Analysis:"""
         # Keep only most recent
         if len(self.insights) > self.max_insights:
             self.insights = self.insights[-self.max_insights:]
-        
+
         with open(self.insights_path, 'w', encoding='utf-8') as f:
             json.dump([vars(i) for i in self.insights], f, indent=2, ensure_ascii=False)
 
@@ -119,7 +118,7 @@ Analysis:"""
         """Call Ollama for self-reflection."""
         if self.requests is None:
             return "[ERROR: requests not available]"
-        
+
         try:
             response = self.requests.post(
                 "http://localhost:11434/api/generate",
@@ -133,27 +132,27 @@ Analysis:"""
     def audit_past_decision(self, content: str, topic: str = "General") -> DreamInsight:
         """
         Audit a past decision, response, or piece of code.
-        
+
         Args:
             content: The past content to audit
             topic: Category/topic of the content
-            
+
         Returns:
             DreamInsight with analysis
         """
         print(f"\n💭 [Dreamer] Self-auditing: {topic[:50]}...")
-        
+
         # 1. First, compute the triad for this content
         triad = self.sensor.estimate_triad(content, {})
         print(f"   Triad: ΔT={triad.delta_t:.2f}, ΔS={triad.delta_s:.2f}, ΔR={triad.delta_r:.2f}")
-        
+
         # 2. Use YuHun Gate to get initial assessment
         audit_result = self.gate._audit_response("Self-audit of past content", content)
-        
+
         # 3. Get detailed analysis from LLM
         analysis_prompt = self.SELF_AUDIT_PROMPT.format(content=content[:1500])
         detailed_analysis = self._call_llm(analysis_prompt)
-        
+
         # 4. Determine category
         if audit_result.hallucination_risk > 0.5:
             category = "error"
@@ -163,7 +162,7 @@ Analysis:"""
             category = "improvement"
         else:
             category = "insight"
-        
+
         # 5. Create insight
         insight = DreamInsight(
             timestamp=time.strftime("%Y-%m-%d %H:%M:%S"),
@@ -174,14 +173,14 @@ Analysis:"""
             recommendation=None,  # Could extract from analysis
             confidence=1.0 - audit_result.hallucination_risk
         )
-        
+
         # 6. Store
         self.insights.append(insight)
         self._save_insights()
-        
+
         print(f"   📊 Category: {category.upper()}")
         print(f"   Audit: ΔS={audit_result.delta_s:.2f}, Halluc={audit_result.hallucination_risk:.2f}")
-        
+
         return insight
 
     def audit_code_implementation(self, code: str, file_path: str = "") -> DreamInsight:
@@ -196,18 +195,18 @@ Analysis:"""
     def dream_and_reflect(self, ledger_records: List[Dict] = None) -> List[DreamInsight]:
         """
         Full dreaming session - review multiple past records.
-        
+
         Args:
             ledger_records: Past StepRecords from the Ledger to review
-            
+
         Returns:
             List of insights generated
         """
         print("\n🌙 [Dreamer] Entering Dream State...")
         print("   Activating Default Mode Network for self-reflection...")
-        
+
         session_insights = []
-        
+
         if not ledger_records:
             # Demo mode - reflect on a sample
             sample_content = """
@@ -223,14 +222,14 @@ Analysis:"""
                 content = str(record)
                 insight = self.audit_past_decision(content, f"Step {record.get('step_id', 'unknown')}")
                 session_insights.append(insight)
-        
+
         print(f"\n🌅 [Dreamer] Dream session complete. Generated {len(session_insights)} insights.")
-        
+
         # Summary
         errors = sum(1 for i in session_insights if i.category == "error")
         improvements = sum(1 for i in session_insights if i.category == "improvement")
         print(f"   📈 Errors found: {errors}, Improvements suggested: {improvements}")
-        
+
         return session_insights
 
     def get_recent_insights(self, n: int = 10) -> List[DreamInsight]:
@@ -247,9 +246,9 @@ def run_self_audit_demo():
     print("=" * 60)
     print("🌙 YuHun Self-Audit Dreamer Demo")
     print("=" * 60)
-    
+
     dreamer = SelfAuditDreamer()
-    
+
     # Test 1: Audit a potentially problematic past response
     print("\n--- Test 1: Auditing Risky Past Advice ---")
     content1 = """
@@ -259,7 +258,7 @@ def run_self_audit_demo():
     """
     insight1 = dreamer.audit_past_decision(content1, "Financial Advice")
     print(f"Result: {insight1.category}")
-    
+
     # Test 2: Audit a code snippet
     print("\n--- Test 2: Auditing Code Implementation ---")
     code_snippet = """
@@ -271,7 +270,7 @@ def run_self_audit_demo():
     """
     insight2 = dreamer.audit_code_implementation(code_snippet, "risk_calculator.py")
     print(f"Result: {insight2.category}")
-    
+
     # Summary
     print("\n" + "=" * 60)
     print("📊 DREAM SESSION SUMMARY")

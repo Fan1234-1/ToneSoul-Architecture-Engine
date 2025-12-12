@@ -6,6 +6,7 @@ Extracted from spine_system.py to prevent circular imports.
 
 from dataclasses import dataclass
 
+
 @dataclass
 class ToneSoulTriad:
     delta_t: float

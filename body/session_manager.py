@@ -50,7 +50,7 @@ class SessionEvent:
     latency_ms: float
 
 
-@dataclass  
+@dataclass
 class SessionState:
     """Complete session state for persistence."""
     session_id: str
@@ -60,29 +60,29 @@ class SessionState:
     drive_mode: str
     turn_count: int
     events: List[SessionEvent] = field(default_factory=list)
-    
+
     # TimeIsland metadata
     island_topic: str = ""
     avg_d1: float = 0.0
     avg_d2: float = 0.0
     avg_d3: float = 0.0
     avg_poav: float = 0.0
-    
+
     # Verification
     content_hash: str = ""
-    
+
     def compute_hash(self) -> str:
         """Compute content hash for verification."""
         content = f"{self.session_id}:{self.turn_count}:{len(self.events)}"
         for event in self.events:
             content += f":{event.event_id}"
         return hashlib.sha256(content.encode()).hexdigest()[:16]
-    
+
     def update_stats(self):
         """Update aggregate statistics."""
         if not self.events:
             return
-        
+
         self.avg_d1 = sum(e.drive_d1 for e in self.events) / len(self.events)
         self.avg_d2 = sum(e.drive_d2 for e in self.events) / len(self.events)
         self.avg_d3 = sum(e.drive_d3 for e in self.events) / len(self.events)
@@ -98,7 +98,7 @@ class SessionState:
 class SessionManager:
     """
     Manage YuHun session persistence.
-    
+
     Sessions are stored as JSON files in the memory/ directory.
     Each session file contains:
     - Session metadata
@@ -106,28 +106,28 @@ class SessionManager:
     - TimeIsland statistics
     - Hash for integrity verification
     """
-    
+
     def __init__(self, memory_dir: str = None):
         self.memory_dir = memory_dir or self._default_memory_dir()
         os.makedirs(self.memory_dir, exist_ok=True)
-        
+
         self.current_session: Optional[SessionState] = None
-    
+
     def _default_memory_dir(self) -> str:
         """Get default memory directory."""
         return os.path.join(
             os.path.dirname(__file__),
             "..", "memory", "sessions"
         )
-    
+
     def _session_path(self, session_id: str) -> str:
         """Get path for session file."""
         return os.path.join(self.memory_dir, f"{session_id}.json")
-    
+
     # ═══════════════════════════════════════════════════════
     # Session Operations
     # ═══════════════════════════════════════════════════════
-    
+
     def create_session(
         self,
         model: str = "gemma3:4b",
@@ -147,7 +147,7 @@ class SessionManager:
         )
         self.current_session = session
         return session
-    
+
     def add_event(
         self,
         input_text: str,
@@ -162,9 +162,9 @@ class SessionManager:
         """Add an event to the current session."""
         if not self.current_session:
             raise ValueError("No active session. Call create_session() first.")
-        
+
         self.current_session.turn_count += 1
-        
+
         event = SessionEvent(
             event_id=f"{self.current_session.session_id}_{self.current_session.turn_count}",
             timestamp=datetime.now().isoformat(),
@@ -178,19 +178,19 @@ class SessionManager:
             decision=decision,
             latency_ms=round(latency_ms, 0)
         )
-        
+
         self.current_session.events.append(event)
         self.current_session.update_stats()
-        
+
         return event
-    
+
     def save_session(self) -> str:
         """Save current session to file."""
         if not self.current_session:
             raise ValueError("No session to save")
-        
+
         self.current_session.update_stats()
-        
+
         # Convert to dict
         data = {
             "session_id": self.current_session.session_id,
@@ -209,26 +209,26 @@ class SessionManager:
             "content_hash": self.current_session.content_hash,
             "events": [asdict(e) for e in self.current_session.events]
         }
-        
+
         path = self._session_path(self.current_session.session_id)
         os.makedirs(os.path.dirname(path), exist_ok=True)
-        
+
         with open(path, 'w', encoding='utf-8') as f:
             json.dump(data, f, indent=2, ensure_ascii=False)
-        
+
         return path
-    
+
     def load_session(self, session_id: str) -> Optional[SessionState]:
         """Load a session from file."""
         path = self._session_path(session_id)
-        
+
         if not os.path.exists(path):
             return None
-        
+
         try:
             with open(path, 'r', encoding='utf-8') as f:
                 data = json.load(f)
-            
+
             session = SessionState(
                 session_id=data["session_id"],
                 created_at=data["created_at"],
@@ -243,7 +243,7 @@ class SessionManager:
                 avg_poav=data.get("stats", {}).get("avg_poav", 0),
                 content_hash=data.get("content_hash", "")
             )
-            
+
             # Load events
             for e in data.get("events", []):
                 event = SessionEvent(
@@ -260,25 +260,25 @@ class SessionManager:
                     latency_ms=e["latency_ms"]
                 )
                 session.events.append(event)
-            
+
             # Verify hash
             if session.compute_hash() != session.content_hash:
                 print(f"[WARNING] Session hash mismatch: {session_id}")
-            
+
             self.current_session = session
             return session
-            
+
         except Exception as e:
             print(f"[ERROR] Failed to load session: {e}")
             return None
-    
+
     def list_sessions(self) -> List[Dict[str, Any]]:
         """List all available sessions."""
         sessions = []
-        
+
         if not os.path.exists(self.memory_dir):
             return sessions
-        
+
         for filename in os.listdir(self.memory_dir):
             if filename.endswith('.json'):
                 path = os.path.join(self.memory_dir, filename)
@@ -294,9 +294,9 @@ class SessionManager:
                     })
                 except:
                     pass
-        
+
         return sorted(sessions, key=lambda x: x["created_at"], reverse=True)
-    
+
     def get_last_session(self) -> Optional[str]:
         """Get the most recent session ID."""
         sessions = self.list_sessions()
@@ -312,9 +312,9 @@ def demo_session_manager():
     print("=" * 60)
     print("YuHun Session Manager Demo")
     print("=" * 60)
-    
+
     manager = SessionManager()
-    
+
     # Create session
     print("\n--- Creating Session ---")
     session = manager.create_session(
@@ -323,7 +323,7 @@ def demo_session_manager():
         topic="Consciousness Discussion"
     )
     print(f"Session ID: {session.session_id}")
-    
+
     # Add events
     print("\n--- Adding Events ---")
     event1 = manager.add_event(
@@ -337,7 +337,7 @@ def demo_session_manager():
         latency_ms=11000
     )
     print(f"Event 1: {event1.event_id}")
-    
+
     event2 = manager.add_event(
         input_text="Is AI conscious?",
         response="This is a complex philosophical question...",
@@ -349,12 +349,12 @@ def demo_session_manager():
         latency_ms=8500
     )
     print(f"Event 2: {event2.event_id}")
-    
+
     # Save
     print("\n--- Saving Session ---")
     path = manager.save_session()
     print(f"Saved to: {path}")
-    
+
     # Show stats
     print("\n--- Session Stats ---")
     print(f"Turns: {session.turn_count}")
@@ -363,7 +363,7 @@ def demo_session_manager():
     print(f"Avg D3: {session.avg_d3:.3f}")
     print(f"Avg POAV: {session.avg_poav:.3f}")
     print(f"Hash: {session.content_hash}")
-    
+
     # Reload
     print("\n--- Reloading Session ---")
     manager2 = SessionManager()
@@ -372,7 +372,7 @@ def demo_session_manager():
         print(f"Loaded: {loaded.session_id}")
         print(f"Events: {len(loaded.events)}")
         print(f"Hash verified: {loaded.content_hash == loaded.compute_hash()}")
-    
+
     print("\n" + "=" * 60)
     print("Demo Complete!")
 

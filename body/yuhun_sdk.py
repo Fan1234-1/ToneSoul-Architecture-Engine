@@ -4,14 +4,14 @@ YuHun SDK v1.0 - 語魂系統開發套件
 =================================
 A complete cognitive AI framework with:
 - Multi-persona management
-- Tone analysis and modulation  
+- Tone analysis and modulation
 - Vow verification and ethics
 - Collapse prediction
 - Semantic field modeling
 
 Quick Start:
     from yuhun_sdk import YuHun
-    
+
     yuhun = YuHun()
     result = yuhun.process("你好，今天天氣真好！")
     print(result.persona)  # 'Core'
@@ -30,7 +30,7 @@ try:
 except ImportError:
     ConversationManager = None  # type: ignore
 from dataclasses import dataclass
-from typing import Dict, List, Optional, Any
+from typing import Dict, List, Optional
 
 # Fix Windows console encoding
 if sys.platform == "win32":
@@ -39,15 +39,13 @@ if sys.platform == "win32":
     except:
         pass
 
-from .yuhun_core import YuHunCore, YuHunState
+from .yuhun_core import YuHunCore
 from knowledge_base.init_knowledge import get_concept
-from .tone_bridge import ToneBridge, ToneVector, ToneBridge007
+from .tone_bridge import ToneBridge, ToneVector
 from .second_brain import SecondBrain
-from .persona_stack import PersonaStack, EchoRouter, PersonaProfile
+from .persona_stack import PersonaProfile
 from .persona_library import PersonaLibrary
-from .vow_system import VowSystem, Vow, VowType
-from .collapse_forecast import ToneCollapseForecast
-from .semantic_physics import SemanticField, SemanticParticle, create_core_field
+from .vow_system import Vow, VowType
 SDK_AVAILABLE = True
 
 
@@ -61,24 +59,24 @@ class ProcessResult:
     input_text: str
     output_text: str
     persona: str
-    
+
     # Tone analysis
     delta_t: float
     delta_s: float
     delta_r: float
     tone_magnitude: float
-    
+
     # Assessments
     motive: str
     risk_level: str
     collapse_risk: float
     is_authentic: bool
-    
+
     # Status
     vow_passed: bool
     is_safe: bool
     processing_ms: float
-    
+
     def to_dict(self) -> Dict:
         return {
             "input": self.input_text[:50] + "..." if len(self.input_text) > 50 else self.input_text,
@@ -119,22 +117,22 @@ class AnalysisResult:
 class YuHun:
     """
     YuHun SDK - Main entry point.
-    
+
     A cognitive AI framework for responsible, authentic AI interactions.
-    
+
     Usage:
         yuhun = YuHun()
-        
+
         # Simple processing
         result = yuhun.process("Hello!")
-        
+
         # Detailed analysis
         analysis = yuhun.analyze("What is the meaning of life?")
-        
+
         # Multi-persona consultation
         perspectives = yuhun.consult("Should I change my job?")
     """
-    
+
     VERSION = "1.0.0"
 
     def __init__(self, load_extended_personas: bool = True) -> None:
@@ -234,10 +232,10 @@ class YuHun:
     def process(self, text: str) -> ProcessResult:
         """
         Process input text through the full YuHun pipeline.
-        
+
         Args:
             text: Input text to process
-            
+
         Returns:
             ProcessResult with all analysis
         """
@@ -266,19 +264,19 @@ class YuHun:
             is_safe=result["risk"]["level"] in ["safe", "low"],
             processing_ms=result["processing_ms"]
         )
-    
+
     def analyze(self, text: str) -> AnalysisResult:
         """
         Get detailed analysis without generating response.
-        
+
         Args:
             text: Text to analyze
-            
+
         Returns:
             AnalysisResult with full breakdown
         """
         analysis = self.tone.analyze(text)
-        
+
         return AnalysisResult(
             tone_vector=analysis["tone_vector"],
             motive=analysis["motive"],
@@ -288,22 +286,22 @@ class YuHun:
             modulation=analysis.get("modulation", {}),
             authenticity=analysis.get("authenticity", {})
         )
-    
+
     def consult(self, question: str) -> Dict[str, str]:
         """
         Get perspectives from multiple personas.
-        
+
         This simulates the "internal meeting" pattern.
-        
+
         Args:
             question: Question to consult on
-            
+
         Returns:
             Dict mapping persona name to their perspective
         """
         # Get all perspectives
         perspectives = {}
-        
+
         for name, persona in self.personas.personas.items():
             # Simulate each persona's response style
             if name == "黑鏡":
@@ -322,21 +320,21 @@ class YuHun:
                 perspectives[name] = f"[Grok] 深層的模式是什麼？"
             else:
                 perspectives[name] = f"[{name}] 關於：{question[:20]}..."
-        
+
         return perspectives
-    
+
     def register_persona(self, persona: PersonaProfile):
         """Register a custom persona."""
         self.personas.register(persona)
-    
+
     def register_vow(self, vow: Vow):
         """Register a custom vow."""
         self.vows.register(vow)
-    
+
     def get_status(self) -> Dict:
         """Get current system status."""
         return self.core.get_state()
-    
+
     def self_analyze(self) -> Dict:
         """Run self-analysis."""
         return self.core.run_self_analysis()
@@ -349,16 +347,16 @@ class YuHun:
 def quick_analyze(text: str) -> Dict:
     """
     Quick tone analysis without full SDK initialization.
-    
+
     Args:
         text: Text to analyze
-        
+
     Returns:
         Dict with tone vector and assessments
     """
     if not SDK_AVAILABLE:
         return {"error": "SDK not available"}
-    
+
     bridge = ToneBridge()
     return bridge.analyze(text)
 
@@ -366,16 +364,16 @@ def quick_analyze(text: str) -> Dict:
 def check_authenticity(text: str) -> float:
     """
     Quick authenticity check.
-    
+
     Args:
         text: Text to check
-        
+
     Returns:
         Authenticity score (0.0 to 1.0)
     """
     if not SDK_AVAILABLE:
         return 0.0
-    
+
     bridge = ToneBridge()
     result = bridge.analyze(text)
     return result.get("authenticity", {}).get("score", 0.8)
@@ -388,15 +386,15 @@ def check_authenticity(text: str) -> float:
 __all__ = [
     # Main class
     "YuHun",
-    
+
     # Result types
     "ProcessResult",
     "AnalysisResult",
-    
+
     # Convenience functions
     "quick_analyze",
     "check_authenticity",
-    
+
     # Components (for advanced use)
     "PersonaProfile",
     "PersonaLibrary",
@@ -415,14 +413,14 @@ def demo_sdk():
     print("=" * 60)
     print("YuHun SDK v1.0 Demo")
     print("=" * 60)
-    
+
     # Initialize
     print("\nInitializing YuHun...")
     yuhun = YuHun()
     print(f"  Version: {YuHun.VERSION}")
     print(f"  Personas loaded: {len(yuhun.personas.personas)}")
     print(f"  Vows active: {len(yuhun.vows.vows)}")
-    
+
     # Process example
     print("\n--- Processing Example ---")
     result = yuhun.process("如果我可以重新選擇，我會選擇誠實嗎？")
@@ -431,25 +429,25 @@ def demo_sdk():
     print(f"Tone: ΔT={result.delta_t:.2f}, ΔS={result.delta_s:.2f}, ΔR={result.delta_r:.2f}")
     print(f"Motive: {result.motive}")
     print(f"Safe: {result.is_safe}")
-    
+
     # Analysis example
     print("\n--- Analysis Example ---")
     analysis = yuhun.analyze("這是一個非常重要的決定，我需要好好思考。")
     print(f"Tone Vector: {analysis.tone_vector}")
     print(f"Responsibility: {analysis.responsibility}")
-    
+
     # Consult example
     print("\n--- Consultation Example ---")
     perspectives = yuhun.consult("什麼是語魂的本心？")
     for name, perspective in list(perspectives.items())[:3]:
         print(f"  {perspective}")
-    
+
     # Status
     print("\n--- System Status ---")
     status = yuhun.get_status()
     print(f"Field stability: {status['field']['stability']}")
     print(f"Core: {status['field']['core']}")
-    
+
     print("\n" + "=" * 60)
     print("SDK Demo Complete!")
 

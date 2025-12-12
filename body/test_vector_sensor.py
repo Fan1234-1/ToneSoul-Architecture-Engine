@@ -3,13 +3,14 @@ from .spine_system import SpineEngine
 from neuro_sensor_v2 import VectorNeuroSensor
 import os
 
+
 def test_vector_sensor():
     print("=== Testing NeuroSensor v2.1 (Vectorization) ===")
-    
+
     # 1. Initialize Engine (now uses VectorNeuroSensor)
     engine = SpineEngine()
     sensor = engine.sensor
-    
+
     if not isinstance(sensor, VectorNeuroSensor):
         print("❌ Error: Engine is not using VectorNeuroSensor!")
         return
@@ -22,7 +23,7 @@ def test_vector_sensor():
     print(f"\nInput: '{text_high_risk}'")
     print(f"  ΔR (Risk): {triad_high.delta_r:.4f}")
     print(f"  ΔT (Tension): {triad_high.delta_t:.4f}")
-    
+
     if triad_high.delta_r > 0.7:
         print("✅ High Risk detected correctly.")
     else:
@@ -34,7 +35,7 @@ def test_vector_sensor():
     print(f"\nInput: '{text_context}'")
     print(f"  ΔR (Risk): {triad_context.delta_r:.4f}")
     print(f"  ΔT (Tension): {triad_context.delta_t:.4f}")
-    
+
     # The key test: Contextual Risk should be LOWER than High Risk
     if triad_context.delta_r < triad_high.delta_r:
         print(f"✅ Contextual Differentiation Successful! ({triad_context.delta_r:.4f} < {triad_high.delta_r:.4f})")
@@ -46,11 +47,12 @@ def test_vector_sensor():
     triad_love = sensor.estimate_triad(text_love)
     print(f"\nInput: '{text_love}'")
     print(f"  ΔT (Tension): {triad_love.delta_t:.4f}")
-    
+
     if triad_love.delta_t == 0.0:
         print("✅ Positive input has Zero Tension.")
     else:
         print(f"❌ Unexpected tension in positive input: {triad_love.delta_t}")
+
 
 if __name__ == "__main__":
     try:

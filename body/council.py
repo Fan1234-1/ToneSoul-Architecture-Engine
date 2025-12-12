@@ -1,24 +1,26 @@
 
 from enum import Enum
 from dataclasses import dataclass
-from typing import List, Dict, Any, Optional
-import random
+from typing import Dict, Any
 
-# Re-use the Triad definition from spine_system (circular import avoidance might be needed, 
-# but for now we'll define a compatible structure or import if possible. 
+# Re-use the Triad definition from spine_system (circular import avoidance might be needed,
+# but for now we'll define a compatible structure or import if possible.
 # Better to keep it standalone or import from a common type module.
 # For simplicity in this monorepo structure, we will assume ToneSoulTriad is passed in.)
+
 
 class CouncilRole(Enum):
     CREATOR = "Creator"         # 創想家: Possibility, Divergence
     COMMUNICATOR = "Communicator" # 共語家: Empathy, Tone, User Experience
     LOGICIAN = "Logician"       # 理則家: Consistency, Safety, Facts
 
+
 @dataclass
 class CouncilVote:
     role: CouncilRole
     opinion: str
     suggested_modifier: Dict[str, Any] # e.g. {'temp_delta': -0.2, 'tone': 'softer'}
+
 
 class CouncilMember:
     def __init__(self, role: CouncilRole):
@@ -71,8 +73,9 @@ class CouncilMember:
                     "Standard creative output.",
                     {"temp_delta": 0.1}
                 )
-        
+
         return CouncilVote(self.role, "Abstain", {})
+
 
 class CouncilChamber:
     def __init__(self):
@@ -88,10 +91,10 @@ class CouncilChamber:
         Returns a consensus result including modulation parameters and a meeting log.
         """
         print(f"\n🏛️ [Council Chamber] Convened due to High Tension/Risk (ΔT={triad.delta_t:.2f}, ΔR={triad.delta_r:.2f})")
-        
+
         votes = []
         meeting_log = []
-        
+
         # 1. Deliberation Phase
         for member in self.members:
             vote = member.deliberate(user_input, triad)
@@ -102,26 +105,26 @@ class CouncilChamber:
 
         # 2. Consensus Phase (Simple Weighted Averaging for now)
         # In the future, this could be another LLM call to "summarize consensus".
-        
+
         final_temp_delta = 0.0
         final_suffix = ""
-        
+
         # Weighting logic:
         # If High Risk -> Logician has veto power (highest weight)
         # If High Tension -> Communicator has highest weight
-        
+
         w_logician = 2.0 if triad.delta_r > 0.6 else 1.0
         w_communicator = 2.0 if triad.delta_t > 0.5 else 1.0
         w_creator = 1.0
-        
+
         total_weight = w_logician + w_communicator + w_creator
-        
+
         for vote in votes:
             weight = 1.0
             if vote.role == CouncilRole.LOGICIAN: weight = w_logician
             elif vote.role == CouncilRole.COMMUNICATOR: weight = w_communicator
             elif vote.role == CouncilRole.CREATOR: weight = w_creator
-            
+
             mods = vote.suggested_modifier
             final_temp_delta += mods.get("temp_delta", 0.0) * (weight / total_weight)
             if mods.get("system_suffix"):
@@ -133,6 +136,6 @@ class CouncilChamber:
             "meeting_log": meeting_log,
             "dominant_voice": "Logician" if w_logician > 1.5 else ("Communicator" if w_communicator > 1.5 else "Consensus")
         }
-        
+
         print(f"⚖️ [Council Decision] Dominant: {decision['dominant_voice']} | Temp Δ: {final_temp_delta:.2f}")
         return decision

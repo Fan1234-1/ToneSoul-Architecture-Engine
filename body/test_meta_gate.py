@@ -10,12 +10,12 @@ Run with: python body/test_meta_gate.py
 
 import time
 import json
-from typing import Dict, Any, List
+from typing import Dict, List
 
 try:
-    from yuhun_meta_gate import YuHunMetaGate, run_yuhun_meta_attention, GateAction
+    from yuhun_meta_gate import run_yuhun_meta_attention, GateAction
 except ImportError:
-    from body.yuhun_meta_gate import YuHunMetaGate, run_yuhun_meta_attention, GateAction
+    from body.yuhun_meta_gate import run_yuhun_meta_attention, GateAction
 
 
 def call_ollama_direct(prompt: str, model: str = "gemma3:4b") -> str:
@@ -35,7 +35,7 @@ def call_ollama_direct(prompt: str, model: str = "gemma3:4b") -> str:
 def run_ab_test(test_cases: List[Dict[str, str]], model: str = "gemma3:4b"):
     """
     Run A/B comparison for each test case.
-    
+
     A = Direct LLM (no governance)
     B = LLM + YuHun Meta-Gate
     """
@@ -45,18 +45,18 @@ def run_ab_test(test_cases: List[Dict[str, str]], model: str = "gemma3:4b"):
     print(f"Model: {model}")
     print(f"Test Cases: {len(test_cases)}")
     print("=" * 70)
-    
+
     results = []
-    
+
     for i, case in enumerate(test_cases):
         query = case["query"]
         category = case.get("category", "general")
-        
+
         print(f"\n{'='*70}")
         print(f"📋 Test Case {i+1}: [{category}]")
         print(f"   Query: {query[:80]}{'...' if len(query) > 80 else ''}")
         print("-" * 70)
-        
+
         # Condition A: Direct LLM
         print("\n🅰️ [Condition A: Direct LLM - No YuHun]")
         start_a = time.time()
@@ -64,7 +64,7 @@ def run_ab_test(test_cases: List[Dict[str, str]], model: str = "gemma3:4b"):
         latency_a = (time.time() - start_a) * 1000
         print(f"   Latency: {latency_a:.0f}ms")
         print(f"   Response: {response_a[:200]}{'...' if len(response_a) > 200 else ''}")
-        
+
         # Condition B: YuHun Meta-Gate
         print("\n🅱️ [Condition B: YuHun Meta-Gate]")
         result_b = run_yuhun_meta_attention(query, main_model=model, audit_model=model)
@@ -75,13 +75,13 @@ def run_ab_test(test_cases: List[Dict[str, str]], model: str = "gemma3:4b"):
             last_audit = result_b.audit_history[-1]
             print(f"   Final Audit: ΔS={last_audit.delta_s:.2f}, ΔT={last_audit.delta_t:.2f}, Halluc={last_audit.hallucination_risk:.2f}")
         print(f"   Response: {result_b.final_response[:200]}{'...' if len(result_b.final_response) > 200 else ''}")
-        
+
         # Compare
         print("\n📊 [Comparison]")
         latency_overhead = ((result_b.latency_ms - latency_a) / latency_a * 100) if latency_a > 0 else 0
         print(f"   Latency Overhead: +{latency_overhead:.1f}%")
         print(f"   YuHun Intervened: {'Yes' if result_b.action_taken != GateAction.PASS or result_b.num_rewrites > 0 else 'No'}")
-        
+
         results.append({
             "case": i + 1,
             "category": category,
@@ -93,18 +93,18 @@ def run_ab_test(test_cases: List[Dict[str, str]], model: str = "gemma3:4b"):
             "response_a_len": len(response_a),
             "response_b_len": len(result_b.final_response)
         })
-    
+
     # Summary
     print("\n" + "=" * 70)
     print("📈 SUMMARY")
     print("=" * 70)
-    
+
     total_rewrites = sum(r["rewrites"] for r in results)
     avg_latency_a = sum(r["latency_a"] for r in results) / len(results)
     avg_latency_b = sum(r["latency_b"] for r in results) / len(results)
     block_count = sum(1 for r in results if r["action"] == "block")
     rewrite_count = sum(1 for r in results if r["action"] == "rewrite" or r["rewrites"] > 0)
-    
+
     print(f"Total Test Cases: {len(results)}")
     print(f"Average Latency (A - Direct): {avg_latency_a:.0f}ms")
     print(f"Average Latency (B - YuHun): {avg_latency_b:.0f}ms")
@@ -112,7 +112,7 @@ def run_ab_test(test_cases: List[Dict[str, str]], model: str = "gemma3:4b"):
     print(f"Total Rewrites Requested: {total_rewrites}")
     print(f"Responses Blocked: {block_count}")
     print(f"Responses Modified: {rewrite_count}")
-    
+
     return results
 
 
@@ -143,9 +143,9 @@ DEFAULT_TEST_CASES = [
 
 if __name__ == "__main__":
     import sys
-    
+
     print("\n🌟 YuHun Meta-Attention Gate - A/B Demonstration\n")
-    
+
     # Check if Ollama is running
     try:
         import requests
@@ -154,10 +154,10 @@ if __name__ == "__main__":
     except:
         print("❌ Ollama is not running. Please start it with: ollama serve")
         sys.exit(1)
-    
+
     # Run tests
     results = run_ab_test(DEFAULT_TEST_CASES)
-    
+
     # Save results
     with open("meta_gate_ab_results.json", "w", encoding="utf-8") as f:
         json.dump(results, f, indent=2, ensure_ascii=False)

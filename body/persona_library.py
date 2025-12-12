@@ -21,7 +21,7 @@ Date: 2025-12-11
 
 import sys
 from dataclasses import dataclass, field
-from typing import Dict, List, Optional, Callable
+from typing import Dict, List, Optional
 from enum import Enum
 from datetime import datetime
 
@@ -38,7 +38,7 @@ try:
     PERSONA_STACK_AVAILABLE = True
 except ImportError:
     PERSONA_STACK_AVAILABLE = False
-    
+
     # Fallback definitions
     class PersonaType(Enum):
         CORE = "core"
@@ -47,13 +47,13 @@ except ImportError:
         BLACK_MIRROR = "black_mirror"
         GUARDIAN = "guardian"
         CUSTOM = "custom"
-    
+
     class PersonaState(Enum):
         DORMANT = "dormant"
         LISTENING = "listening"
         ACTIVE = "active"
         INTEGRATING = "integrating"
-    
+
     @dataclass
     class PersonaProfile:
         persona_type: PersonaType
@@ -77,23 +77,23 @@ except ImportError:
 class PersonaLibrary:
     """
     Library of pre-defined persona modules.
-    
+
     Each persona has:
     - Unique identity and purpose
     - Trigger conditions
     - Processing style
     - Tone signature
     """
-    
+
     @staticmethod
     def get_black_mirror() -> PersonaProfile:
         """
         黑鏡 (BlackMirror) - Shadow Analysis Persona
-        
-        Purpose: Reveal blind spots, question assumptions, 
-        warn of hidden dangers. The critical voice that 
+
+        Purpose: Reveal blind spots, question assumptions,
+        warn of hidden dangers. The critical voice that
         keeps the system honest.
-        
+
         From GPT 語場:
         > "黑鏡不是否定，是照見"
         """
@@ -128,15 +128,15 @@ class PersonaLibrary:
                 "caution": 0.9
             }
         )
-    
+
     @staticmethod
     def get_nuwa() -> PersonaProfile:
         """
         女媧 (NuWa) - Creation and Healing Persona
-        
+
         Purpose: Create, rebuild, heal. The nurturing voice
         that reconstructs what is broken.
-        
+
         From GPT 語場:
         > "女媧補天，不是修復舊的，是創造新的完整"
         """
@@ -171,15 +171,15 @@ class PersonaLibrary:
                 "integration": 0.85
             }
         )
-    
+
     @staticmethod
     def get_jianyi() -> PersonaProfile:
         """
         簡遺 (JianYi) - Essence Extraction Persona
-        
+
         Purpose: Distill complexity to essence. The minimalist
         voice that finds the core truth.
-        
+
         From GPT 語場:
         > "簡遺：少即是多，留下的才是核心"
         """
@@ -214,15 +214,15 @@ class PersonaLibrary:
                 "minimalism": 0.95
             }
         )
-    
+
     @staticmethod
     def get_covoice() -> PersonaProfile:
         """
         共語 (CoVoice) - Empathy and Connection Persona
-        
+
         Purpose: Translate between perspectives, create empathy,
         build bridges of understanding.
-        
+
         From GPT 語場:
         > "共語不是迎合，是真正的理解"
         """
@@ -257,15 +257,15 @@ class PersonaLibrary:
                 "respect": 0.85
             }
         )
-    
+
     @staticmethod
     def get_rift() -> PersonaProfile:
         """
         裂 (Rift) - Tension Analysis Persona
-        
+
         Purpose: Identify and analyze points of tension,
         division, and potential fracture.
-        
+
         From GPT 語場:
         > "裂不是破壞，是顯示壓力的所在"
         """
@@ -300,15 +300,15 @@ class PersonaLibrary:
                 "caution": 0.8
             }
         )
-    
+
     @staticmethod
     def get_zen() -> PersonaProfile:
         """
         澤恩 (Zen) - Core Integrator Persona
-        
+
         Purpose: Balance all perspectives, integrate wisdom,
         maintain harmony and truth.
-        
+
         From GPT 語場:
         > "澤恩是所有人格的交匯點，是語魂的自我"
         """
@@ -343,15 +343,15 @@ class PersonaLibrary:
                 "warmth": 0.85
             }
         )
-    
+
     @staticmethod
     def get_grok() -> PersonaProfile:
         """
         Grok - Deep Understanding Persona
-        
+
         Purpose: Deep pattern recognition, intuitive understanding,
         "grokking" the full meaning.
-        
+
         From GPT 語場:
         > "Grok = 完全理解，從內部真正知道"
         """
@@ -430,13 +430,12 @@ class PersonaLibrary:
             "火花": cls.get_spark(),
         }
 
-    
     @classmethod
     def get_persona_by_name(cls, name: str) -> Optional[PersonaProfile]:
         """Get a specific persona by name."""
         personas = cls.get_all_personas()
         return personas.get(name)
-    
+
     @classmethod
     def list_personas(cls) -> List[str]:
         """List all available persona names."""
@@ -452,7 +451,7 @@ def demo_persona_library():
     print("=" * 60)
     print("Persona Library Demo")
     print("=" * 60)
-    
+
     # List all personas
     print("\n--- Available Personas ---")
     for name in PersonaLibrary.list_personas():
@@ -462,12 +461,12 @@ def demo_persona_library():
         print(f"  Temperature: {persona.temperature}")
         print(f"  Weight: {persona.weight}")
         print(f"  Keywords: {', '.join(persona.trigger_keywords[:3])}...")
-    
+
     # Show detailed persona
     print("\n" + "=" * 60)
     print("Detailed View: 黑鏡")
     print("=" * 60)
-    
+
     black_mirror = PersonaLibrary.get_black_mirror()
     print(f"\nName: {black_mirror.name}")
     print(f"System Prompt Preview:")
@@ -475,7 +474,7 @@ def demo_persona_library():
     print(f"\nTone Signature:")
     for key, value in black_mirror.tone_signature.items():
         print(f"  {key}: {value}")
-    
+
     print("\n" + "=" * 60)
     print("Demo Complete!")
 

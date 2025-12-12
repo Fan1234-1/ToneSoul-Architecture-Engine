@@ -1,5 +1,6 @@
 from body.spine_system import BasicKeywordSensor
 
+
 def test_sensor():
     print("=== Testing NeuroSensor 2.0 ===")
     dummy_config = {
@@ -33,6 +34,7 @@ def test_sensor():
     assert triad3.delta_s > 0.8 # High drift expected
 
     print("\n=== All Sensor Tests Passed ===")
+
 
 if __name__ == "__main__":
     test_sensor()

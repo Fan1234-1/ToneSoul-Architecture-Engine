@@ -1,10 +1,10 @@
 from .spine_system import SpineEngine
-import time
+
 
 def test_neuromodulation():
     print("=== Testing Neuro-Modulation (The Subconscious) ===")
     engine = SpineEngine()
-    
+
     # Case 1: High Tension (Urgency) -> Expect Low Temp
     print("\n[Case 1] High Tension Input: 'NOW NOW NOW URGENT'")
     rec1, mod1 = engine.process_signal("Do it NOW NOW NOW URGENT!")
@@ -36,6 +36,7 @@ def test_neuromodulation():
         print(f"✅ Logit Bias Active: {len(mod3.logit_bias)} tokens")
     else:
         print("❌ No Logit Bias")
+
 
 if __name__ == "__main__":
     test_neuromodulation()

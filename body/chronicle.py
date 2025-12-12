@@ -1,5 +1,5 @@
-import os
 import datetime
+
 
 class Chronicle:
     LOG_FILE = "chronicle.log"
@@ -10,7 +10,7 @@ class Chronicle:
         Logs a decision to the chronicle.log in the YuHun standard format.
         """
         timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        
+
         entry = (
             f"[{timestamp}] [{action}]\n"
             f"Thinking: {thinking}\n"
@@ -18,7 +18,7 @@ class Chronicle:
             f"Execution: {execution}\n"
             f"{'-'*40}\n"
         )
-        
+
         # Append to file
         # Used by both Agent (manual edits) and System (SpineEngine)
         try:

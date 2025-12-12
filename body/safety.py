@@ -1,12 +1,11 @@
 import os
 import shutil
-from typing import List, Optional
 from .chronicle import Chronicle
-from knowledge_base.init_knowledge import get_concept
 
 
 class SafetyError(Exception):
     pass
+
 
 class ActionPlan:
     """
@@ -15,34 +14,34 @@ class ActionPlan:
     1. No obscure deletion of user data.
     2. Mandatory logging to Chronicle.
     """
-    
+
     SAFE_EXTENSIONS = [".tmp", ".log", ".bak", ".cache"]
     SAFE_DIRS = [
-        "temp", "tmp", "cache", "build", "dist", 
+        "temp", "tmp", "cache", "build", "dist",
         "__pycache_", "node_modules", ".pytest_cache"
     ]
-    
+
     @staticmethod
     def _is_safe_path(path: str) -> bool:
         """Determines if a path is considered 'safe' to delete (temporary or build artifacts)."""
         path = path.lower().replace("\\", "/")
         parts = path.split("/")
         basename = parts[-1]
-        
+
         # Check directories (exact match in path)
         for part in parts:
             if part in ActionPlan.SAFE_DIRS:
                 return True
-        
+
         # Check safe prefixes for the directory/file itself
         if basename.startswith("temp_") or basename.startswith("tmp_") or basename.startswith("test_"):
             return True
-        
+
         # Check extensions
         for ext in ActionPlan.SAFE_EXTENSIONS:
             if path.endswith(ext):
                 return True
-                
+
         return False
 
     @staticmethod
@@ -92,7 +91,7 @@ class ActionPlan:
             return
 
         is_safe = ActionPlan._is_safe_path(path)
-        
+
         if not is_safe and not force:
             thinking = f"Prevented deletion of sensitive directory: {path}"
             Chronicle.log("BLOCK_DELETION_DIR", thinking, "Mass Data Loss Risk", "Raised SafetyError")
@@ -100,14 +99,14 @@ class ActionPlan:
 
         action_type = "DELETE_DIR" if is_safe else "DELETE_SENSITIVE_DIR"
         risk = "Low (Temp)" if is_safe else "High (Mass Data Loss)"
-        
+
         Chronicle.log(
             action=action_type,
             thinking=f"Deleting recursive {path}. Reason: {reason}. Safe={is_safe}, Force={force}",
             risk=risk,
             execution="shutil.rmtree()"
         )
-        
+
         try:
             shutil.rmtree(path)
         except Exception as e:
