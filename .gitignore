@@ -1,0 +1,47 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+.env
+.venv
+build/
+dist/
+*.egg-info/
+
+# Node.js
+node_modules/
+npm-debug.log
+yarn-error.log
+
+# IDE
+.vscode/
+.idea/
+
+
+# ToneSoul Specific
+ledger.jsonl
+*.log
+
+# Privacy & Memory (DO NOT COMMIT)
+memory/*.jsonl
+memory/*.db
+memory/*.sqlite
+memory_vault/
+secrets/
+.env.local
+
+# Security (NEVER COMMIT)
+*.key
+*.pem
+*.secret
+api_keys.json
+credentials.json
+.api_key
+config.local.py
+
+# Training data (may contain sensitive info)
+memory/training_data/*.json

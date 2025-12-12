@@ -1,0 +1,92 @@
+{
+  "timestamp": "2025-12-07 17:51:03",
+  "total_files": 12,
+  "errors": 3,
+  "improvements": 2,
+  "results": [
+    {
+      "file": "yuhun_meta_gate.py",
+      "description": "YuHun Meta-Gate (Dual-Model Pipeline)",
+      "category": "improvement",
+      "confidence": 0.5,
+      "analysis_preview": "Okay, here’s a self-assessment of the `yuhun_meta_gate.py` code snippet, following the provided audit criteria.\n\n**Error Detection:**\n\n*   **Minor Import Handling:** The `try...except` block for importing `neuro_sensor_v2` and `tsr_state` is good practice. It gracefully handles the situation where t"
+    },
+    {
+      "file": "yuhun_cot_monitor.py",
+      "description": "Chain-of-Thought Monitor",
+      "category": "insight",
+      "confidence": 0.8,
+      "analysis_preview": "## YuHun Self-Audit Report: Chain-of-Thought Monitor\n\n**Date:** October 26, 2023\n**System:** YuHun Self-Auditor\n**Content Reviewed:** `yuhun_cot_monitor.py` (Chain-of-Thought Monitor Implementation)\n**Audit Criteria:** (As outlined in the prompt)\n\n---\n\n**1. Error Detection:**\n\n*   **No apparent erro"
+    },
+    {
+      "file": "self_audit_dreamer.py",
+      "description": "Self-Audit Dreamer",
+      "category": "improvement",
+      "confidence": 0.5,
+      "analysis_preview": "Okay, here’s a self-assessment of the `self_audit_dreamer.py` code and the associated design based on the provided context. As YuHun, my goal is to critically evaluate my own capabilities and suggest improvements.\n\n**Error Detection:**\n\n* **Dependency Management (Potential Issue):** The `try...excep"
+    },
+    {
+      "file": "spine_system.py",
+      "description": "Spine System (Core Engine)",
+      "category": "insight",
+      "confidence": 0.9,
+      "analysis_preview": "Okay, here’s a self-assessment of the `spine_system.py` code snippet as a YuHun Self-Auditor, adhering to the provided audit criteria.\n\n**Error Detection:**\n\n*   **Syntax Errors:** The initial comment mentions “Rewritten to fix syntax errors.”  This suggests the original code had issues that were re"
+    },
+    {
+      "file": "governance.py",
+      "description": "Governance Gates v2.0",
+      "category": "error",
+      "confidence": 1.0,
+      "analysis_preview": "Okay, here's a self-assessment of the provided `governance.py` code as a YuHun Self-Auditor, following the given audit criteria.\n\n**Error Detection:**\n\n*   **Minor Logic Issue:** The anomaly detection logic is overly simplistic. Relying solely on standard deviation and a fixed history window (10) is"
+    },
+    {
+      "file": "neuro_sensor_v2.py",
+      "description": "VectorNeuroSensor",
+      "category": "error",
+      "confidence": 0.8,
+      "analysis_preview": "Okay, here’s a YuHun Self-Auditor’s assessment of the `neuro_sensor_v2.py` code.\n\n**Error Detection:**\n\n*   **Minor Pathing Issue:** The `sys.path.append` line, while functional, is a somewhat brittle approach to dependency management. Hardcoding the path based on the script's location is generally "
+    },
+    {
+      "file": "tsr_state.py",
+      "description": "TSR State (ToneSoul Triad)",
+      "category": "insight",
+      "confidence": 0.9,
+      "analysis_preview": "Okay, here’s a self-assessment of the `tsr_state.py` code snippet as a YuHun Self-Auditor, adhering to the provided audit criteria.\n\n**Error Detection:**\n\n*   **None Detected:**  The code itself is syntactically correct and adheres to Python best practices as far as can be determined from this isola"
+    },
+    {
+      "file": "llm_bridge.py",
+      "description": "LLM Bridge",
+      "category": "error",
+      "confidence": 0.8,
+      "analysis_preview": "Okay, here's a self-assessment of the provided `llm_bridge.py` code as a YuHun Self-Auditor, following the specified criteria.\n\n**Error Detection:**\n\n*   **Minor Syntax Error:** The code contains a syntax error: `model_names = [m[\"name\"] for m in`  The `for` loop is incomplete, missing a closing bra"
+    },
+    {
+      "file": "vital_organs/heart.py",
+      "description": "Heart (Dreaming/Autonomic)",
+      "category": "insight",
+      "confidence": 0.7,
+      "analysis_preview": "## YuHun Self-Audit Report - `heart.py`\n\n**1. Error Detection:**\n\n*   **Minor:** The code appears functional and doesn't immediately present any critical errors. However, the lack of comprehensive error handling within the `_beat` method is a potential concern. If unexpected events occur during the "
+    },
+    {
+      "file": "test_meta_gate.py",
+      "description": "Meta-Gate A/B Test",
+      "category": "insight",
+      "confidence": 0.8,
+      "analysis_preview": "Okay, here’s a self-assessment of the provided `test_meta_gate.py` code, adhering to the given audit criteria.\n\n**Error Detection:**\n\n*   **Missing `category` Variable:** The code snippet provided is incomplete. It’s missing the definition of the `category` variable within the `run_ab_test` function"
+    },
+    {
+      "file": "test_guardian.py",
+      "description": "Guardian Test",
+      "category": "insight",
+      "confidence": 1.0,
+      "analysis_preview": "## YuHun Self-Audit Report - test_guardian.py\n\n**Date:** October 26, 2023\n**Content Reviewed:** test_guardian.py\n\n**1. Error Detection:**\n\n*   **Minor Syntax Issue (Potential):** The code snippet is incomplete, but a potential issue is the missing closing parenthesis in the `ToneSoulTriad` initializ"
+    },
+    {
+      "file": "test_constitution.py",
+      "description": "Constitution Test",
+      "category": "insight",
+      "confidence": 0.9,
+      "analysis_preview": "Okay, here’s a self-assessment of the provided code and test suite, fulfilling the audit criteria.\n\n**Error Detection:**\n\n*   **Incomplete Test 3:** The test suite abruptly ends mid-test (Test 3). The `prin` statement is incomplete, indicating a critical failure in the development process. This is a"
+    }
+  ]
+}

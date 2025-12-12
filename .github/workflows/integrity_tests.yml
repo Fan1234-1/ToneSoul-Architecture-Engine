@@ -1,0 +1,60 @@
+name: YuHun Integrity Tests
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install pytest sympy numpy
+        if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+    
+    - name: Run L13 Semantic Drive tests
+      run: |
+        cd body
+        python semantic_drive.py
+    
+    - name: Run Computation Bridge tests
+      run: |
+        cd body
+        python computation_bridge.py
+    
+    - name: Run YuHun Metrics tests
+      run: |
+        cd body
+        python yuhun_metrics.py
+    
+    - name: Run Semantic Spine tests
+      run: |
+        cd body
+        python semantic_spine.py
+    
+    - name: Validate JSON schemas
+      run: |
+        python -c "import json; json.load(open('law/semantic_spine_schema.json'))"
+        python -c "import json; json.load(open('AXIOMS.json'))"
+        python -c "import json; json.load(open('MANIFEST.json'))"
+    
+    - name: Check for syntax errors in Python files
+      run: |
+        python -m py_compile body/semantic_drive.py
+        python -m py_compile body/computation_bridge.py
+        python -m py_compile body/semantic_spine.py
+        python -m py_compile body/yuhun_metrics.py
+        python -m py_compile body/yuhun_gate_logic.py
+        python -m py_compile body/yuhun_meta_gate.py

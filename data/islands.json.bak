@@ -1,0 +1,1 @@
+{"test_island_123": {"island_id": "test_island_123", "created_at": "2025-01-01T00:00:00", "title": "Legacy Island", "kairos_tags": ["legacy"], "fs_vector": {"C": 0.8, "M": 0.8, "R": 0.8, "Gamma": 0.8}, "semantic_tension": 0.2, "current_mode": "Creative", "history_digest": "Old times.", "last_step_id": "step_0"}}

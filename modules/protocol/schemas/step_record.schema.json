@@ -1,0 +1,66 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "title": "StepRecord",
+    "description": "An immutable record of a single interaction step.",
+    "type": "object",
+    "properties": {
+        "record_id": {
+            "type": "string",
+            "format": "uuid"
+        },
+        "timestamp": {
+            "type": "number"
+        },
+        "user_input": {
+            "type": "string"
+        },
+        "triad": {
+            "$ref": "triad.schema.json"
+        },
+        "decision": {
+            "type": "object",
+            "properties": {
+                "allowed": {
+                    "type": "boolean"
+                },
+                "mode": {
+                    "type": "string"
+                },
+                "reason": {
+                    "type": "string"
+                },
+                "fallback": {
+                    "type": "string"
+                }
+            },
+            "required": [
+                "allowed",
+                "mode"
+            ]
+        },
+        "prev_hash": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$"
+        },
+        "hash": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$"
+        },
+        "vow_id": {
+            "type": "string"
+        },
+        "signatory": {
+            "type": "string"
+        }
+    },
+    "required": [
+        "record_id",
+        "timestamp",
+        "triad",
+        "decision",
+        "prev_hash",
+        "hash",
+        "vow_id"
+    ],
+    "additionalProperties": false
+}

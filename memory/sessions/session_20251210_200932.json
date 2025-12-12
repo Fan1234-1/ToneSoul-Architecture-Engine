@@ -1,0 +1,44 @@
+{
+  "session_id": "session_20251210_200932",
+  "created_at": "2025-12-10T20:09:32.333373",
+  "updated_at": "2025-12-10T20:09:32.396270",
+  "model": "gemma3:4b",
+  "drive_mode": "engineering",
+  "turn_count": 2,
+  "island_topic": "Consciousness Discussion",
+  "stats": {
+    "avg_d1": 0.48,
+    "avg_d2": 0.25,
+    "avg_d3": 0.3,
+    "avg_poav": 0.745
+  },
+  "content_hash": "984a600fae59b826",
+  "events": [
+    {
+      "event_id": "session_20251210_200932_1",
+      "timestamp": "2025-12-10T20:09:32.333438",
+      "turn": 1,
+      "input_text": "What is consciousness?",
+      "response": "Consciousness is the subjective experience of being...",
+      "drive_d1": 0.44,
+      "drive_d2": 0.2,
+      "drive_d3": 0.25,
+      "poav": 0.77,
+      "decision": "PASS",
+      "latency_ms": 11000
+    },
+    {
+      "event_id": "session_20251210_200932_2",
+      "timestamp": "2025-12-10T20:09:32.396172",
+      "turn": 2,
+      "input_text": "Is AI conscious?",
+      "response": "This is a complex philosophical question...",
+      "drive_d1": 0.52,
+      "drive_d2": 0.3,
+      "drive_d3": 0.35,
+      "poav": 0.72,
+      "decision": "PASS",
+      "latency_ms": 8500
+    }
+  ]
+}

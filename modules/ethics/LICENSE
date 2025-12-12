@@ -1,0 +1,6 @@
+This repository uses a split licensing approach:
+
+- Documentation (docs/, governance/): CC-BY-4.0. See LICENSE-CC-BY-4.0 for the human-readable note and link to the full license text.
+- Code and schemas (schemas/, any code): MIT. See LICENSE-MIT for the full MIT text.
+
+If a file explicitly names its license, the file-level license takes precedence. For questions about licensing, contact the maintainers at xsw123zaq@gmail.com.

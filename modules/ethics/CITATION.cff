@@ -1,0 +1,10 @@
+cff-version: 1.2.0
+message: "If you use this work, please cite the repository."
+title: "AI-Ethics"
+version: "v1.2"
+authors:
+  - family-names: "Huang"
+    given-names: "Fan-Wei"
+    name: "Huang Fan-Wei"
+date-released: "2025-08-16"
+url: "https://github.com/Fan1234-1/AI-Ethics"

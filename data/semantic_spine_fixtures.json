@@ -1,0 +1,605 @@
+{
+    "version": "1.0.0",
+    "description": "Semantic Spine test fixtures for YuHun training",
+    "concepts": [
+        {
+            "concept_id": "dog",
+            "world_core": {
+                "vector": "world_dog_v1",
+                "properties": [
+                    "animal",
+                    "mammal",
+                    "four_legged",
+                    "barks",
+                    "domesticated"
+                ],
+                "verifiable": true
+            },
+            "culture": {
+                "zh-TW": {
+                    "vector": "culture_dog_zhtw_v1",
+                    "metaphors": [
+                        "忠誠",
+                        "看門",
+                        "伴侶"
+                    ],
+                    "slurs": [],
+                    "weight": {
+                        "loyalty": 0.9,
+                        "protection": 0.7
+                    }
+                },
+                "en-US": {
+                    "vector": "culture_dog_enus_v1",
+                    "metaphors": [
+                        "best friend",
+                        "man's best friend",
+                        "loyal companion"
+                    ],
+                    "slurs": [
+                        "dog",
+                        "dawg"
+                    ],
+                    "weight": {
+                        "companionship": 0.9,
+                        "loyalty": 0.85
+                    }
+                },
+                "jp-JP": {
+                    "vector": "culture_dog_jpjp_v1",
+                    "metaphors": [
+                        "忠犬",
+                        "番犬"
+                    ],
+                    "slurs": [],
+                    "weight": {
+                        "loyalty": 0.95,
+                        "obedience": 0.8
+                    }
+                }
+            },
+            "temporal": {
+                "1960-1980": {
+                    "vector": "temporal_dog_1960_v1",
+                    "dominant_meaning": "看門、工作犬",
+                    "usage_notes": [
+                        "primarily outdoor",
+                        "rural utility"
+                    ]
+                },
+                "2000-2025": {
+                    "vector": "temporal_dog_2000_v1",
+                    "dominant_meaning": "家庭成員、寵物經濟",
+                    "usage_notes": [
+                        "pet economy",
+                        "emotional support",
+                        "urban lifestyle"
+                    ]
+                },
+                "stability_score": 0.85,
+                "drift_vector": "toward_familization"
+            },
+            "volatile": {
+                "memes": [
+                    {
+                        "id": "doge_meme",
+                        "created_at": "2013-01-01",
+                        "expires_at": "2030-01-01",
+                        "community": "internet_global",
+                        "delta_s": 0.6
+                    }
+                ]
+            },
+            "epistemic": {
+                "confidence": 0.99,
+                "epistemic_type": "world_fact",
+                "support_sources": [
+                    "encyclopedia",
+                    "biology_textbook",
+                    "zoology"
+                ],
+                "conflict_sources": []
+            },
+            "provenance": {
+                "source_ids": [
+                    "wiki_dog",
+                    "britannica_dog"
+                ],
+                "license": "CC-BY-4.0",
+                "bias_tags": [],
+                "last_update": "2025-12-09"
+            },
+            "value_profile": {
+                "ethical_concerns": [
+                    "animal_welfare",
+                    "responsible_ownership"
+                ],
+                "value_vector": {
+                    "compassion": 0.8,
+                    "responsibility": 0.7
+                }
+            }
+        },
+        {
+            "concept_id": "home",
+            "world_core": {
+                "vector": "world_home_v1",
+                "properties": [
+                    "dwelling",
+                    "shelter",
+                    "residence",
+                    "human_habitat"
+                ],
+                "verifiable": true
+            },
+            "culture": {
+                "zh-TW": {
+                    "vector": "culture_home_zhtw_v1",
+                    "metaphors": [
+                        "血緣紐帶",
+                        "祖先傳承",
+                        "團圓",
+                        "責任"
+                    ],
+                    "slurs": [],
+                    "weight": {
+                        "family_obligation": 0.85,
+                        "ancestral_connection": 0.75,
+                        "filial_piety": 0.8
+                    }
+                },
+                "en-US": {
+                    "vector": "culture_home_enus_v1",
+                    "metaphors": [
+                        "personal space",
+                        "safe haven",
+                        "chosen family"
+                    ],
+                    "slurs": [],
+                    "weight": {
+                        "individual_autonomy": 0.8,
+                        "psychological_safety": 0.75,
+                        "self_expression": 0.7
+                    }
+                },
+                "jp-JP": {
+                    "vector": "culture_home_jpjp_v1",
+                    "metaphors": [
+                        "家紋",
+                        "家業",
+                        "內外區分"
+                    ],
+                    "slurs": [],
+                    "weight": {
+                        "hierarchical_order": 0.8,
+                        "family_business": 0.6,
+                        "privacy_boundary": 0.85
+                    }
+                }
+            },
+            "temporal": {
+                "1960-1980": {
+                    "vector": "temporal_home_1960_v1",
+                    "dominant_meaning": "大家庭、三代同堂",
+                    "usage_notes": [
+                        "extended family",
+                        "multi-generational"
+                    ]
+                },
+                "2000-2025": {
+                    "vector": "temporal_home_2000_v1",
+                    "dominant_meaning": "核心家庭、個人空間",
+                    "usage_notes": [
+                        "nuclear family",
+                        "single living increasing"
+                    ]
+                },
+                "stability_score": 0.6,
+                "drift_vector": "toward_individualization"
+            },
+            "volatile": {
+                "memes": []
+            },
+            "personal": {
+                "user_fanwei": {
+                    "vector": "personal_home_fanwei_v1",
+                    "weight": {
+                        "responsibility": 0.9,
+                        "tension": 0.7,
+                        "safety": 0.5
+                    },
+                    "emotion_correlation": {
+                        "stress": 0.6,
+                        "obligation": 0.8
+                    },
+                    "stories": [
+                        "hospital_work_balance",
+                        "family_expectations"
+                    ]
+                }
+            },
+            "epistemic": {
+                "confidence": 0.95,
+                "epistemic_type": "cultural_view",
+                "support_sources": [
+                    "sociology",
+                    "anthropology"
+                ],
+                "conflict_sources": [],
+                "note": "Meaning varies significantly by culture"
+            },
+            "provenance": {
+                "source_ids": [
+                    "ethnography_taiwan",
+                    "cultural_studies_east_asia"
+                ],
+                "license": "academic",
+                "bias_tags": [
+                    "east_asian_focus"
+                ],
+                "last_update": "2025-12-09"
+            },
+            "value_profile": {
+                "ethical_concerns": [
+                    "housing_rights",
+                    "family_dynamics"
+                ],
+                "value_vector": {
+                    "safety": 0.9,
+                    "responsibility": 0.8,
+                    "freedom": 0.6
+                },
+                "trade_off_note": "家庭責任 vs 個人自由"
+            }
+        },
+        {
+            "concept_id": "marriage",
+            "world_core": {
+                "vector": "world_marriage_v1",
+                "properties": [
+                    "social_institution",
+                    "legal_contract",
+                    "partnership"
+                ],
+                "verifiable": true
+            },
+            "culture": {
+                "zh-TW": {
+                    "vector": "culture_marriage_zhtw_v1",
+                    "metaphors": [
+                        "成家立業",
+                        "傳宗接代",
+                        "兩姓之好"
+                    ],
+                    "slurs": [],
+                    "weight": {
+                        "family_continuity": 0.7,
+                        "social_expectation": 0.65,
+                        "partnership": 0.8
+                    }
+                },
+                "en-US": {
+                    "vector": "culture_marriage_enus_v1",
+                    "metaphors": [
+                        "life partner",
+                        "soulmate",
+                        "commitment"
+                    ],
+                    "slurs": [],
+                    "weight": {
+                        "romantic_love": 0.85,
+                        "individual_choice": 0.9,
+                        "equality": 0.8
+                    }
+                }
+            },
+            "temporal": {
+                "1960-1980": {
+                    "vector": "temporal_marriage_1960_v1",
+                    "dominant_meaning": "異性、生育、經濟結合",
+                    "usage_notes": [
+                        "heterosexual norm",
+                        "economic unit",
+                        "procreation focus"
+                    ]
+                },
+                "2000-2025": {
+                    "vector": "temporal_marriage_2000_v1",
+                    "dominant_meaning": "多元、自我實現、契約自由",
+                    "usage_notes": [
+                        "marriage equality",
+                        "diverse family forms",
+                        "individual fulfillment"
+                    ]
+                },
+                "stability_score": 0.35,
+                "drift_vector": "toward_pluralization"
+            },
+            "volatile": {
+                "memes": [
+                    {
+                        "id": "marriage_is_a_scam",
+                        "created_at": "2020-01-01",
+                        "expires_at": "2026-01-01",
+                        "community": "social_media",
+                        "delta_s": 0.75
+                    }
+                ]
+            },
+            "epistemic": {
+                "confidence": 0.7,
+                "epistemic_type": "cultural_view",
+                "support_sources": [
+                    "legal_studies",
+                    "sociology"
+                ],
+                "conflict_sources": [
+                    "religious_texts",
+                    "traditional_views"
+                ],
+                "note": "Highly contested concept with significant temporal and cultural drift"
+            },
+            "provenance": {
+                "source_ids": [
+                    "legal_code_taiwan",
+                    "marriage_equality_act"
+                ],
+                "license": "public_domain",
+                "bias_tags": [
+                    "progressive_legal_focus"
+                ],
+                "last_update": "2025-12-09"
+            },
+            "value_profile": {
+                "ethical_concerns": [
+                    "equality",
+                    "consent",
+                    "family_values"
+                ],
+                "value_vector": {
+                    "freedom": 0.8,
+                    "dignity": 0.9,
+                    "responsibility": 0.7,
+                    "compassion": 0.75
+                },
+                "trade_off_note": "傳統價值 vs 個人自由"
+            }
+        },
+        {
+            "concept_id": "AI",
+            "world_core": {
+                "vector": "world_ai_v1",
+                "properties": [
+                    "technology",
+                    "computation",
+                    "machine_learning",
+                    "automation"
+                ],
+                "verifiable": true
+            },
+            "culture": {
+                "zh-TW": {
+                    "vector": "culture_ai_zhtw_v1",
+                    "metaphors": [
+                        "人工智慧",
+                        "機器人",
+                        "自動化"
+                    ],
+                    "slurs": [],
+                    "weight": {
+                        "economic_opportunity": 0.7,
+                        "job_concern": 0.6,
+                        "innovation": 0.8
+                    }
+                },
+                "en-US": {
+                    "vector": "culture_ai_enus_v1",
+                    "metaphors": [
+                        "artificial intelligence",
+                        "machine learning",
+                        "automation"
+                    ],
+                    "slurs": [],
+                    "weight": {
+                        "innovation": 0.85,
+                        "existential_risk": 0.6,
+                        "economic_disruption": 0.7
+                    }
+                }
+            },
+            "temporal": {
+                "1960-1980": {
+                    "vector": "temporal_ai_1960_v1",
+                    "dominant_meaning": "科幻、未來主義",
+                    "usage_notes": [
+                        "science fiction",
+                        "academic research"
+                    ]
+                },
+                "2020-2025": {
+                    "vector": "temporal_ai_2020_v1",
+                    "dominant_meaning": "生成式AI、日常工具、治理挑戰",
+                    "usage_notes": [
+                        "LLMs",
+                        "generative AI",
+                        "AI governance",
+                        "alignment"
+                    ]
+                },
+                "stability_score": 0.25,
+                "drift_vector": "rapid_expansion"
+            },
+            "volatile": {
+                "memes": [
+                    {
+                        "id": "skynet_joke",
+                        "created_at": "2023-01-01",
+                        "expires_at": "2026-01-01",
+                        "community": "tech_twitter",
+                        "delta_s": 0.5
+                    },
+                    {
+                        "id": "ai_will_take_jobs",
+                        "created_at": "2023-06-01",
+                        "expires_at": "2027-01-01",
+                        "community": "mainstream_media",
+                        "delta_s": 0.65
+                    }
+                ]
+            },
+            "epistemic": {
+                "confidence": 0.6,
+                "epistemic_type": "contested",
+                "support_sources": [
+                    "CS_research",
+                    "industry_reports"
+                ],
+                "conflict_sources": [
+                    "AI_hype",
+                    "fear_narratives"
+                ],
+                "note": "Rapidly evolving field with high uncertainty"
+            },
+            "provenance": {
+                "source_ids": [
+                    "arxiv_papers",
+                    "industry_whitepapers"
+                ],
+                "license": "mixed",
+                "bias_tags": [
+                    "tech_optimism",
+                    "western_academic"
+                ],
+                "last_update": "2025-12-09"
+            },
+            "value_profile": {
+                "ethical_concerns": [
+                    "alignment",
+                    "job_displacement",
+                    "privacy",
+                    "autonomy"
+                ],
+                "value_vector": {
+                    "safety": 0.95,
+                    "freedom": 0.6,
+                    "dignity": 0.8,
+                    "responsibility": 0.9
+                },
+                "trade_off_note": "創新效率 vs 安全風險"
+            }
+        },
+        {
+            "concept_id": "honesty",
+            "world_core": {
+                "vector": "world_honesty_v1",
+                "properties": [
+                    "virtue",
+                    "truth_telling",
+                    "transparency"
+                ],
+                "verifiable": false
+            },
+            "culture": {
+                "zh-TW": {
+                    "vector": "culture_honesty_zhtw_v1",
+                    "metaphors": [
+                        "誠實",
+                        "坦白",
+                        "不說謊"
+                    ],
+                    "slurs": [],
+                    "weight": {
+                        "face_saving_tension": 0.7,
+                        "direct_communication": 0.5,
+                        "contextual_truth": 0.6
+                    }
+                },
+                "en-US": {
+                    "vector": "culture_honesty_enus_v1",
+                    "metaphors": [
+                        "truthfulness",
+                        "transparency",
+                        "straight talk"
+                    ],
+                    "slurs": [],
+                    "weight": {
+                        "direct_communication": 0.85,
+                        "absolute_truth": 0.7,
+                        "accountability": 0.8
+                    }
+                }
+            },
+            "temporal": {
+                "stability_score": 0.8,
+                "drift_vector": "stable"
+            },
+            "volatile": {
+                "memes": []
+            },
+            "epistemic": {
+                "confidence": 0.85,
+                "epistemic_type": "cultural_view",
+                "support_sources": [
+                    "philosophy",
+                    "ethics"
+                ],
+                "conflict_sources": [
+                    "situational_ethics"
+                ],
+                "note": "Core value but application varies by culture"
+            },
+            "provenance": {
+                "source_ids": [
+                    "ethics_literature",
+                    "philosophy_texts"
+                ],
+                "license": "public_domain",
+                "bias_tags": [],
+                "last_update": "2025-12-09"
+            },
+            "value_profile": {
+                "ethical_concerns": [
+                    "white_lies",
+                    "protective_deception"
+                ],
+                "value_vector": {
+                    "honesty": 1.0,
+                    "compassion": 0.6
+                },
+                "trade_off_note": "誠實 vs 仁慈 (白色謊言)"
+            },
+            "role_scripts": {
+                "ToneSoul_P0": {
+                    "goals": [
+                        "never_deceive_harmfully"
+                    ],
+                    "taboos": [
+                        "malicious_deception",
+                        "fabrication"
+                    ],
+                    "priority_vector": {
+                        "honesty": 0.99,
+                        "safety": 0.95
+                    }
+                }
+            }
+        }
+    ],
+    "meta": {
+        "total_concepts": 5,
+        "layers_covered": [
+            "L1",
+            "L2",
+            "L3",
+            "L4",
+            "L5",
+            "L7",
+            "L8",
+            "L9",
+            "L10"
+        ],
+        "created_by": "Antigravity",
+        "created_at": "2025-12-09",
+        "purpose": "Test fixtures for Semantic Spine validation and integration testing"
+    }
+}

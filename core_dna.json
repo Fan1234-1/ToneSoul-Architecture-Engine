@@ -1,0 +1,17 @@
+{
+  "generation": 16,
+  "genes": {
+    "w_tension": 0.343053256477701,
+    "w_satisfaction": 0.3218443373341036,
+    "w_reality": 0.3431215888528406,
+    "max_tension": 0.95,
+    "dream_latency": 9.660831390746125,
+    "consolidation_interval": 35.64827704059365,
+    "base_burn_rate": 0.1,
+    "deep_thought_cost": 2.0,
+    "curiosity": 0.44291624022345805,
+    "caution": 0.5906601459007026
+  },
+  "parent_id": "Genesis",
+  "mutation_rate": 0.05
+}

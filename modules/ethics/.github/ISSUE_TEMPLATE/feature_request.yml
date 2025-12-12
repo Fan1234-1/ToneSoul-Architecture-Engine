@@ -1,0 +1,12 @@
+name: "Feature request"
+description: "Suggest an improvement"
+labels: ["enhancement"]
+body:
+  - type: textarea
+    id: motivation
+    attributes:
+      label: Motivation / use case
+      placeholder: "Why is this valuable?"
+      description: "Reference volume/section if applicable."
+    validations:
+      required: true

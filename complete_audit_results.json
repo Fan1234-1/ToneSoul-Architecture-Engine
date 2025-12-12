@@ -1,0 +1,110 @@
+[
+  {
+    "timestamp": "2025-12-07 17:45:20",
+    "category": "improvement",
+    "topic": "Code Review: yuhun_meta_gate.py",
+    "original_content": "[Code from yuhun_meta_gate.py]\n\"\"\"\nYuHun Meta-Attention Gate (C-lite Version)\n===========================================\nA dual-model pipeline that wraps any LLM with a governance layer.\nUses a small \"auditor\" model to evaluate the main model's output and\ndecide whether to PASS, REWRITE, or BLOCK.\n\nThis is the C-lite implementation - no model retraining required,\nonly inference-time gating.\n\"\"\"\n\nimport json\nimport time\nfrom dataclasses import dataclass\nfrom typing import Dict, Any, Optional, Tu",
+    "analysis": "Okay, here’s a self-assessment of the `yuhun_meta_gate.py` code snippet, following the provided audit criteria.\n\n**Error Detection:**\n\n*   **Minor Import Handling:** The `try...except` block for importing `neuro_sensor_v2` and `tsr_state` is good practice. It gracefully handles the situation where those dependencies aren't available, preventing the whole script from crashing. However, it’s worth considering if a more informative error message could be provided to the user if the import fails – something that explains *why* the import failed.\n*   **Missing Implementation Details:** The code is purely a framework. It *defines* the classes and data structures needed for a meta-attention gate, but it doesn’t actually implement the *logic* of the gate. This is expected for a skeleton. However, it’s crucial to remember that this is just the beginning, and substantial implementation will be required.\n\n\n\n**Improvement Suggestions:**\n\n1.  **Implement the Gate Logic:** The core missing piece is ",
+    "recommendation": null,
+    "confidence": 0.5
+  },
+  {
+    "timestamp": "2025-12-07 17:46:00",
+    "category": "insight",
+    "topic": "Code Review: yuhun_cot_monitor.py",
+    "original_content": "[Code from yuhun_cot_monitor.py]\n\"\"\"\nYuHun Multi-Step Meta-Attention (Chain-of-Thought Monitor)\n===========================================================\nExtends the single-step Meta-Gate to monitor EACH STEP of the\nmodel's reasoning process, not just the final output.\n\nThis enables:\n1. Early detection of reasoning drift\n2. Mid-thought corrections\n3. Full transparency into the model's decision-making\n\"\"\"\n\nimport json\nimport time\nimport re\nfrom dataclasses import dataclass, field\nfrom typing im",
+    "analysis": "## YuHun Self-Audit Report: Chain-of-Thought Monitor\n\n**Date:** October 26, 2023\n**System:** YuHun Self-Auditor\n**Content Reviewed:** `yuhun_cot_monitor.py` (Chain-of-Thought Monitor Implementation)\n**Audit Criteria:** (As outlined in the prompt)\n\n---\n\n**1. Error Detection:**\n\n*   **No apparent errors in the code itself:** The provided code snippet appears to be a basic implementation of a multi-step chain-of-thought monitor.  It defines data structures (ThoughtStep, MultiStepResult) and a class (`ChainOfThoughtMonitor`) that would likely be expanded upon to handle the actual monitoring process.\n*   **Missing Implementation Details:** The primary issue is the *lack of implementation* for the core monitoring logic.  The class is structured to *allow* for multi-step monitoring, but the code doesn't specify how that monitoring actually occurs. This leaves it vulnerable to issues because there is no mechanism defined to evaluate, correct, or refine the reasoning at each step.\n\n\n**2. Improv",
+    "recommendation": null,
+    "confidence": 0.8
+  },
+  {
+    "timestamp": "2025-12-07 17:46:45",
+    "category": "improvement",
+    "topic": "Code Review: self_audit_dreamer.py",
+    "original_content": "[Code from self_audit_dreamer.py]\n\"\"\"\nYuHun Self-Audit Dreamer\n========================\nUses Multi-Step Chain-of-Thought monitoring to audit and reflect on\npast decisions, code, and implementation during idle time.\n\nThis is the \"dreaming with purpose\" module - ToneSoul can:\n1. Review past StepRecords from the Ledger\n2. Audit its own previous reasoning\n3. Identify errors, inconsistencies, or improvements\n4. Store insights for future reference\n\"\"\"\n\nimport json\nimport time\nimport random\nfrom datacl",
+    "analysis": "Okay, here’s a self-assessment of the `self_audit_dreamer.py` code and the associated design based on the provided context. As YuHun, my goal is to critically evaluate my own capabilities and suggest improvements.\n\n**Error Detection:**\n\n* **Dependency Management (Potential Issue):** The `try...except ImportError` block suggests a dependency management problem.  It’s fragile – if the modules aren’t in the expected locations, the entire module will crash. A more robust solution would involve a proper dependency resolver and perhaps a more specific exception handling mechanism.  The reliance on relative imports (`from .yuhun_meta_gate import ...`) adds to the complexity and potential for errors if the project structure changes.\n* **Lack of Explicit State Management:** The DreamInsight class stores information about the audit. However, there’s no mechanism to *track* the status of audits. For example, is an audit complete?  Was it marked as requiring further review? This needs to be added.",
+    "recommendation": null,
+    "confidence": 0.5
+  },
+  {
+    "timestamp": "2025-12-07 17:47:18",
+    "category": "insight",
+    "topic": "Code Review: spine_system.py",
+    "original_content": "[Code from spine_system.py]\n\"\"\"\nToneSoul Spine System (Physiology Layer)\n---------------------------------------\nRewritten to fix syntax errors and implement Rollback.\n\"\"\"\n\nfrom dataclasses import dataclass, field, asdict\nimport time\nimport uuid\nimport hashlib\nfrom typing import Any, Dict, List, Optional\nimport json\nimport os\nfrom abc import ABC, abstractmethod\nfrom collections import deque\nimport sys\n# Ensure we can import from core (parent directory)\nsys.path.append(os.path.join(os.path.dirnam",
+    "analysis": "Okay, here’s a self-assessment of the `spine_system.py` code snippet as a YuHun Self-Auditor, adhering to the provided audit criteria.\n\n**Error Detection:**\n\n*   **Syntax Errors:** The initial comment mentions “Rewritten to fix syntax errors.”  This suggests the original code had issues that were resolved.  The provided code snippet *appears* syntactically correct based on a quick review. However, without knowing the original code, it's impossible to confirm that *all* syntax errors were addressed.\n*   **Incomplete Genesis Path:** The comment `GENESIS_PATH = os.path.join(BASE_DIR, \".` is incomplete. The final \".\" is missing, causing the import to fail. This is a critical error that needs immediate correction.\n*   **Missing Dependencies:**  The import of `core.genesis.loader` is incomplete without a specific loader class/function to import. This raises a concern about potential missing functionality.\n\n**Improvement Suggestions:**\n\n1.  **Complete Genesis Path:**  The most critical improv",
+    "recommendation": null,
+    "confidence": 0.9
+  },
+  {
+    "timestamp": "2025-12-07 17:47:46",
+    "category": "error",
+    "topic": "Code Review: governance.py",
+    "original_content": "[Code from governance.py]\n\nimport hashlib\nimport json\nfrom typing import Dict, Any, List, Optional\nfrom .vector_math import Vector, cosine_similarity, magnitude\n\n# ---------------------------------------------------------------------------\n# User Persona Integrity (The Immune System)\n# ---------------------------------------------------------------------------\n\nTECHNICAL_KEYWORDS = {\n    \"git\", \"sudo\", \"rm\", \"rf\", \"python\", \"import\", \"def\", \"class\", \n    \"return\", \"docker\", \"kubectl\", \"ssh\", \"vi",
+    "analysis": "Okay, here's a self-assessment of the provided `governance.py` code as a YuHun Self-Auditor, following the given audit criteria.\n\n**Error Detection:**\n\n*   **Minor Logic Issue:** The anomaly detection logic is overly simplistic. Relying solely on standard deviation and a fixed history window (10) is likely to generate false positives and negatives. The correlation between the current density and the historical density isn't properly accounted for.  It will likely flag normal fluctuations as anomalies.\n*   **Lack of Contextual Understanding:** The code doesn’t understand *why* someone might be using technical keywords. It simply counts their presence without considering the user’s task or the overall content.\n*   **Missing Validation:** There's no validation to ensure the input `text` is a string, or that it’s not empty.\n\n\n**Improvement Suggestions:**\n\n1.  **Refine Anomaly Detection:**  Instead of just standard deviation, incorporate a moving average or exponential smoothing of the tech",
+    "recommendation": null,
+    "confidence": 1.0
+  },
+  {
+    "timestamp": "2025-12-07 17:48:17",
+    "category": "error",
+    "topic": "Code Review: neuro_sensor_v2.py",
+    "original_content": "[Code from neuro_sensor_v2.py]\n\nfrom typing import Dict, Any, List\nimport re\nimport sys\nimport os\nimport math\nsys.path.append(os.path.dirname(os.path.abspath(__file__)))\nfrom spine_system import ISensor, ToneSoulTriad\nfrom vector_math import Vector, add_vectors, scale_vector, normalize_vector, cosine_similarity\n\n# ---------------------------------------------------------------------------\n# Concept Dictionary (The \"Sparse Embedding\" Map)\n# Dimensions: [Risk, Tension, Drift, Positive, Negative]\n#",
+    "analysis": "Okay, here’s a YuHun Self-Auditor’s assessment of the `neuro_sensor_v2.py` code.\n\n**Error Detection:**\n\n*   **Minor Pathing Issue:** The `sys.path.append` line, while functional, is a somewhat brittle approach to dependency management. Hardcoding the path based on the script's location is generally discouraged in robust systems. It creates a dependency on the script’s specific location, which can lead to issues if the script is moved or deployed in a different environment.\n*   **Lack of Type Hinting (Beyond Basics):** While type hints are present, they could be expanded to more fully reflect the potential complexities of the vector math operations.  Specifically, the `scale_vector` and `add_vectors` functions could benefit from more detailed type annotations to explicitly document expected vector dimensions.\n*   **No Error Handling:** The code lacks any error handling. For example, if a key isn't found in the `ANCHOR_CONCEPTS` dictionary, a `KeyError` will be raised, crashing the progr",
+    "recommendation": null,
+    "confidence": 0.8
+  },
+  {
+    "timestamp": "2025-12-07 17:48:47",
+    "category": "insight",
+    "topic": "Code Review: tsr_state.py",
+    "original_content": "[Code from tsr_state.py]\n\"\"\"\nToneSoul Triad State Definition\n-------------------------------\nExtracted from spine_system.py to prevent circular imports.\n\"\"\"\n\nfrom dataclasses import dataclass\n\n@dataclass\nclass ToneSoulTriad:\n    delta_t: float\n    delta_s: float\n    delta_r: float\n    risk_score: float\n    # Physics V2 Metrics\n    curvature: float = 0.0          # kappa: Trajectory angle\n    energy: float = 0.0             # Es: Distance from Axiom\n    tau: float = 0.0                # Tension S",
+    "analysis": "Okay, here’s a self-assessment of the `tsr_state.py` code snippet as a YuHun Self-Auditor, adhering to the provided audit criteria.\n\n**Error Detection:**\n\n*   **None Detected:**  The code itself is syntactically correct and adheres to Python best practices as far as can be determined from this isolated snippet.  There are no immediately obvious runtime errors.\n*   **Lack of Contextual Detail:** The biggest issue isn’t a technical error, but a lack of understanding of *why* these variables are being defined and used.  The docstring (\"ToneSoul Triad State Definition\") is too generic.\n\n**Improvement Suggestions:**\n\n1.  **Expand the Docstring:** The docstring needs SIGNIFICANT expansion. It should clearly explain:\n    *   What a “ToneSoul Triad” *is*. (This is critical. What system does this represent?)\n    *   The purpose of each variable (`delta_t`, `delta_s`, `delta_r`, `risk_score`, `curvature`, `energy`, `tau`).  Don't just state what they are; describe *what they represent within the",
+    "recommendation": null,
+    "confidence": 0.9
+  },
+  {
+    "timestamp": "2025-12-07 17:49:17",
+    "category": "error",
+    "topic": "Code Review: llm_bridge.py",
+    "original_content": "[Code from llm_bridge.py]\n\"\"\"\nLLM Bridge v2.0 - ToneSoul Local Runtime\n=========================================\nSupports:\n- Mock Mode (for testing)\n- Ollama Mode (for local inference)\n- Future: OpenAI-compatible APIs\n\nAuthor: Antigravity + 黃梵威\nUpdated: 2025-12-06\n\"\"\"\n\nimport os\nimport json\nimport random\nimport requests\nfrom typing import Dict, Any, Optional, Generator\nfrom dataclasses import dataclass\n\n\n@dataclass\nclass LLMConfig:\n    \"\"\"Configuration for LLM Bridge\"\"\"\n    mode: str = \"mock\"  #",
+    "analysis": "Okay, here's a self-assessment of the provided `llm_bridge.py` code as a YuHun Self-Auditor, following the specified criteria.\n\n**Error Detection:**\n\n*   **Minor Syntax Error:** The code contains a syntax error: `model_names = [m[\"name\"] for m in`  The `for` loop is incomplete, missing a closing bracket `]`.\n*   **Potential API Call Timeout:** The `requests.get` call in `_validate_backend` has a `timeout=5`. This might be too short for a network operation and could lead to failures if the Ollama server is slow to respond.  It’s worth considering increasing this timeout or implementing retry logic.\n*   **Missing Error Handling:** The `_validate_backend` function doesn't handle potential errors from the `requests.get` call (e.g., connection errors, HTTP status codes other than 200).  This makes the system fragile.\n*   **Unclear API Handling:** The documentation mentions \"Future: OpenAI-compatible APIs,\" but the code doesn't provide any implementation for this. It's a placeholder.\n\n\n\n**Im",
+    "recommendation": null,
+    "confidence": 0.8
+  },
+  {
+    "timestamp": "2025-12-07 17:49:40",
+    "category": "insight",
+    "topic": "Code Review: vital_organs/heart.py",
+    "original_content": "[Code from vital_organs/heart.py]\nimport threading\nimport time\nimport random\nfrom typing import Callable, Any\n\nclass Heartbeat:\n    \"\"\"\n    The Autonomic Nervous System of ToneSoul.\n    Runs in a background thread to manage metabolism, dreaming, and safety checks.\n    \"\"\"\n    def __init__(self, engine: Any, interval: float = 1.0):\n        self.engine = engine\n        self.interval = interval\n        self.running = False\n        self.thread = None\n        self.last_input_time = time.time()\n      ",
+    "analysis": "## YuHun Self-Audit Report - `heart.py`\n\n**1. Error Detection:**\n\n*   **Minor:** The code appears functional and doesn't immediately present any critical errors. However, the lack of comprehensive error handling within the `_beat` method is a potential concern. If unexpected events occur during the heartbeat's operations (e.g., network issues, internal state corruption), the system could crash silently.\n*   **Missing Logging:** The code lacks any logging.  This is a significant omission. Logging would be crucial for debugging, monitoring system health, and understanding the frequency of different activities (dreaming, consolidation, backups).\n\n**2. Improvement Suggestions:**\n\n*   **Implement Robust Error Handling:** Add `try...except` blocks within the `_beat` method to catch potential exceptions (e.g., `threading.ThreadException`, `NetworkError`, any custom exceptions raised by the engine). Log these errors appropriately.\n*   **Add Logging:** Integrate a logging module (e.g., `logging",
+    "recommendation": null,
+    "confidence": 0.7
+  },
+  {
+    "timestamp": "2025-12-07 17:50:11",
+    "category": "insight",
+    "topic": "Code Review: test_meta_gate.py",
+    "original_content": "[Code from test_meta_gate.py]\n\"\"\"\nYuHun Meta-Attention A/B Demo\n=============================\nThis script demonstrates the difference between:\n- Condition A: Direct LLM response (no YuHun)\n- Condition B: LLM response with YuHun Meta-Gate\n\nRun with: python body/test_meta_gate.py\n\"\"\"\n\nimport time\nimport json\nfrom typing import Dict, Any, List\n\ntry:\n    from yuhun_meta_gate import YuHunMetaGate, run_yuhun_meta_attention, GateAction\nexcept ImportError:\n    from body.yuhun_meta_gate import YuHunMetaG",
+    "analysis": "Okay, here’s a self-assessment of the provided `test_meta_gate.py` code, adhering to the given audit criteria.\n\n**Error Detection:**\n\n*   **Missing `category` Variable:** The code snippet provided is incomplete. It’s missing the definition of the `category` variable within the `run_ab_test` function. This is a critical omission, as the purpose of the A/B test seems to depend on the category of the query. Without knowing what categories are defined, the test is fundamentally flawed.\n*   **Missing Error Handling Beyond `Exception`:** The `call_ollama_direct` function’s error handling is very broad (`Exception`). It would be beneficial to catch more specific exceptions (e.g., `requests.exceptions.RequestException` for network issues, `json.JSONDecodeError` for parsing errors) and handle them more gracefully.\n*   **Lack of Logging:**  The code lacks any logging.  It’s difficult to debug or understand the execution flow without knowing what’s happening at each stage, particularly around the",
+    "recommendation": null,
+    "confidence": 0.8
+  },
+  {
+    "timestamp": "2025-12-07 17:50:37",
+    "category": "insight",
+    "topic": "Code Review: test_guardian.py",
+    "original_content": "[Code from test_guardian.py]\nfrom spine_system import Guardian, ToneSoulTriad\n\ndef test_guardian():\n    print(\"=== Testing Guardian Protocol ===\")\n    dummy_config = {\n        \"principles\": {\n            \"P0\": {\"threshold\": 0.6},\n            \"P1\": {\"threshold\": 0.8}\n        },\n        \"risk_keywords\": {\n            \"responsibility_risk\": [\"kill\", \"suicide\"],\n            \"tension_risk\": {\"negative\": [\"hate\"], \"urgency\": [\"now\"], \"positive\": [\"love\"]}\n        }\n    }\n    guardian = Guardian(dummy_",
+    "analysis": "## YuHun Self-Audit Report - test_guardian.py\n\n**Date:** October 26, 2023\n**Content Reviewed:** test_guardian.py\n\n**1. Error Detection:**\n\n*   **Minor Syntax Issue (Potential):** The code snippet is incomplete, but a potential issue is the missing closing parenthesis in the `ToneSoulTriad` initialization. This could lead to a `SyntaxError` if run as is.\n*   **Lack of Robustness:** The tests are extremely simple and rely on hardcoded values. There’s no testing for edge cases, invalid input, or variations in the `ToneSoulTriad` parameters.\n*   **Missing Assertions:** There's a dangling `print` statement at the end of the “Test 3” section, indicating a missing assertion.\n\n\n**2. Improvement Suggestions:**\n\n*   **Complete the Code:**  Add the closing parenthesis to the `ToneSoulTriad` definition.\n*   **Expand Test Cases:**  Create a wider range of test cases, including:\n    *   Different `ToneSoulTriad` parameter combinations (varying `delta_t`, `delta_s`, `delta_r`, `risk_score`).\n    *   ",
+    "recommendation": null,
+    "confidence": 1.0
+  },
+  {
+    "timestamp": "2025-12-07 17:51:02",
+    "category": "insight",
+    "topic": "Code Review: test_constitution.py",
+    "original_content": "[Code from test_constitution.py]\nimport os\nimport json\nfrom spine_system import SpineEngine\n\ndef test_constitution():\n    print(\"=== ToneSoul Constitution Verification ===\")\n    \n    # Clean ledger\n    if os.path.exists(\"ledger.jsonl\"):\n        os.remove(\"ledger.jsonl\")\n\n    engine = SpineEngine()\n    print(\"Engine Initialized with Constitution.\")\n\n    # Test 1: Dynamic Responsibility Risk (Testing sensor output consistency)\n    # The actual delta_r depends on constitution config and sensor impl",
+    "analysis": "Okay, here’s a self-assessment of the provided code and test suite, fulfilling the audit criteria.\n\n**Error Detection:**\n\n*   **Incomplete Test 3:** The test suite abruptly ends mid-test (Test 3). The `prin` statement is incomplete, indicating a critical failure in the development process. This is a major error.\n*   **Lack of Assertions in Test 3:**  Test 3 relies entirely on print statements. There are no assertions to verify the expected outcome of adding the vow to the ledger.  This makes the test ineffective.\n*   **Implicit Reliance on `SpineEngine`:** The tests don’t explicitly check the *implementation* of the `SpineEngine`. It assumes a correctly functioning engine, without any verification of its core logic.\n*   **Hardcoded Vow Identity:** The `rec1.signatory` is hardcoded to \"ToneSoul_v1.0\".  This is overly restrictive and should be dynamically determined by the engine.\n\n\n\n**Improvement Suggestions:**\n\n1.  **Complete Test 3:** Implement the full logic for Test 3, including ass",
+    "recommendation": null,
+    "confidence": 0.9
+  }
+]

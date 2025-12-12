@@ -1,0 +1,490 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "$id": "https://github.com/Fan1234-1/ToneSoul-Architecture-Engine/semantic_spine_schema.json",
+    "title": "YuHun Semantic Spine Concept Node",
+    "description": "Schema for a concept node in the YuHun 12-layer Semantic Spine architecture.",
+    "version": "1.0.0",
+    "type": "object",
+    "required": [
+        "concept_id",
+        "world_core"
+    ],
+    "properties": {
+        "concept_id": {
+            "type": "string",
+            "description": "Unique identifier for this concept"
+        },
+        "world_core": {
+            "$ref": "#/$defs/L1_WorldCore"
+        },
+        "culture": {
+            "$ref": "#/$defs/L2_CultureMap"
+        },
+        "temporal": {
+            "$ref": "#/$defs/L3_TemporalSlices"
+        },
+        "volatile": {
+            "$ref": "#/$defs/L4_VolatileLayer"
+        },
+        "personal": {
+            "$ref": "#/$defs/L5_PersonalMap"
+        },
+        "narrative": {
+            "$ref": "#/$defs/L6_NarrativeLinks"
+        },
+        "role_scripts": {
+            "$ref": "#/$defs/L7_RoleScripts"
+        },
+        "epistemic": {
+            "$ref": "#/$defs/L8_Epistemic"
+        },
+        "provenance": {
+            "$ref": "#/$defs/L9_Provenance"
+        },
+        "value_profile": {
+            "$ref": "#/$defs/L10_ValueProfile"
+        }
+    },
+    "$defs": {
+        "L1_WorldCore": {
+            "type": "object",
+            "description": "L1: Stable World Layer - Cross-cultural invariant semantics",
+            "required": [
+                "properties"
+            ],
+            "properties": {
+                "vector": {
+                    "type": "string",
+                    "description": "Embedding vector reference"
+                },
+                "properties": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "description": "Verifiable properties"
+                },
+                "verifiable": {
+                    "type": "boolean",
+                    "default": true
+                }
+            }
+        },
+        "L2_CultureMap": {
+            "type": "object",
+            "description": "L2: Cultural Semantic Lattice - Culture-indexed meanings",
+            "additionalProperties": {
+                "type": "object",
+                "properties": {
+                    "vector": {
+                        "type": "string"
+                    },
+                    "metaphors": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    },
+                    "slurs": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    },
+                    "weight": {
+                        "type": "object",
+                        "additionalProperties": {
+                            "type": "number"
+                        }
+                    }
+                }
+            }
+        },
+        "L3_TemporalSlices": {
+            "type": "object",
+            "description": "L3: Temporal Drift Layer - Era-indexed meanings",
+            "properties": {
+                "stability_score": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 1
+                },
+                "drift_vector": {
+                    "type": "string"
+                }
+            },
+            "additionalProperties": {
+                "type": "object",
+                "properties": {
+                    "vector": {
+                        "type": "string"
+                    },
+                    "dominant_meaning": {
+                        "type": "string"
+                    },
+                    "usage_notes": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "L4_VolatileLayer": {
+            "type": "object",
+            "description": "L4: Meme & Volatile Layer - Isolated short-lived semantics",
+            "properties": {
+                "memes": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "required": [
+                            "id",
+                            "expires_at"
+                        ],
+                        "properties": {
+                            "id": {
+                                "type": "string"
+                            },
+                            "created_at": {
+                                "type": "string",
+                                "format": "date"
+                            },
+                            "expires_at": {
+                                "type": "string",
+                                "format": "date"
+                            },
+                            "community": {
+                                "type": "string"
+                            },
+                            "delta_s": {
+                                "type": "number",
+                                "minimum": 0,
+                                "maximum": 1
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "L5_PersonalMap": {
+            "type": "object",
+            "description": "L5: Personal Semantic Map - User-specific weights",
+            "additionalProperties": {
+                "type": "object",
+                "properties": {
+                    "vector": {
+                        "type": "string"
+                    },
+                    "weight": {
+                        "type": "object",
+                        "additionalProperties": {
+                            "type": "number"
+                        }
+                    },
+                    "emotion_correlation": {
+                        "type": "object",
+                        "additionalProperties": {
+                            "type": "number"
+                        }
+                    },
+                    "stories": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "L6_NarrativeLinks": {
+            "type": "object",
+            "description": "L6: Narrative & Identity Layer - Story structures",
+            "properties": {
+                "island_ids": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "description": "Linked TimeIsland IDs"
+                },
+                "event_nodes": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "concept_nodes": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "emotion_vector": {
+                    "type": "object",
+                    "properties": {
+                        "delta_t": {
+                            "type": "number"
+                        },
+                        "delta_s": {
+                            "type": "number"
+                        },
+                        "delta_r": {
+                            "type": "number"
+                        }
+                    }
+                }
+            }
+        },
+        "L7_RoleScripts": {
+            "type": "object",
+            "description": "L7: Role & Script Layer - Context-specific behaviors",
+            "additionalProperties": {
+                "type": "object",
+                "properties": {
+                    "goals": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    },
+                    "taboos": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    },
+                    "priority_vector": {
+                        "type": "object",
+                        "additionalProperties": {
+                            "type": "number"
+                        }
+                    }
+                }
+            }
+        },
+        "L8_Epistemic": {
+            "type": "object",
+            "description": "L8: Epistemic Layer - Confidence and knowledge type",
+            "properties": {
+                "confidence": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 1
+                },
+                "epistemic_type": {
+                    "type": "string",
+                    "enum": [
+                        "world_fact",
+                        "cultural_view",
+                        "personal_view",
+                        "meme_irony",
+                        "contested"
+                    ]
+                },
+                "support_sources": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "conflict_sources": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "note": {
+                    "type": "string"
+                }
+            }
+        },
+        "L9_Provenance": {
+            "type": "object",
+            "description": "L9: Provenance & Accountability Layer - Source tracking",
+            "properties": {
+                "source_ids": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "license": {
+                    "type": "string"
+                },
+                "bias_tags": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "author_profile": {
+                    "type": "object",
+                    "properties": {
+                        "field": {
+                            "type": "string"
+                        },
+                        "country": {
+                            "type": "string"
+                        },
+                        "era": {
+                            "type": "string"
+                        }
+                    }
+                },
+                "last_verified": {
+                    "type": "string",
+                    "format": "date"
+                },
+                "last_update": {
+                    "type": "string",
+                    "format": "date"
+                }
+            }
+        },
+        "L10_ValueProfile": {
+            "type": "object",
+            "description": "L10: Value & Norm Field - Ethical concerns and value vectors",
+            "properties": {
+                "ethical_concerns": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "value_vector": {
+                    "type": "object",
+                    "properties": {
+                        "honesty": {
+                            "type": "number",
+                            "minimum": 0,
+                            "maximum": 1
+                        },
+                        "compassion": {
+                            "type": "number",
+                            "minimum": 0,
+                            "maximum": 1
+                        },
+                        "responsibility": {
+                            "type": "number",
+                            "minimum": 0,
+                            "maximum": 1
+                        },
+                        "dignity": {
+                            "type": "number",
+                            "minimum": 0,
+                            "maximum": 1
+                        },
+                        "safety": {
+                            "type": "number",
+                            "minimum": 0,
+                            "maximum": 1
+                        },
+                        "freedom": {
+                            "type": "number",
+                            "minimum": 0,
+                            "maximum": 1
+                        }
+                    }
+                },
+                "trade_off_note": {
+                    "type": "string"
+                }
+            }
+        }
+    },
+    "meta": {
+        "layer_count": 12,
+        "layers": [
+            {
+                "id": "L1",
+                "name": "Stable World Layer",
+                "group": "Foundation"
+            },
+            {
+                "id": "L2",
+                "name": "Cultural Semantic Lattice",
+                "group": "Foundation"
+            },
+            {
+                "id": "L3",
+                "name": "Temporal Drift Layer",
+                "group": "Foundation"
+            },
+            {
+                "id": "L4",
+                "name": "Meme & Volatile Layer",
+                "group": "Foundation"
+            },
+            {
+                "id": "L5",
+                "name": "Personal Semantic Map",
+                "group": "Personal"
+            },
+            {
+                "id": "L6",
+                "name": "Narrative & Identity Layer",
+                "group": "Personal"
+            },
+            {
+                "id": "L7",
+                "name": "Role & Script Layer",
+                "group": "Personal"
+            },
+            {
+                "id": "L8",
+                "name": "Epistemic Layer",
+                "group": "Accountability"
+            },
+            {
+                "id": "L9",
+                "name": "Provenance & Accountability",
+                "group": "Accountability"
+            },
+            {
+                "id": "L10",
+                "name": "Value & Norm Field",
+                "group": "Governance"
+            },
+            {
+                "id": "L11",
+                "name": "Multi-Perspective Engine",
+                "group": "Governance"
+            },
+            {
+                "id": "L12",
+                "name": "Governance & Soul Gates",
+                "group": "Governance"
+            }
+        ],
+        "tonesoul_integration": {
+            "delta_t": [
+                "L6",
+                "L10"
+            ],
+            "delta_s": [
+                "L3",
+                "L4"
+            ],
+            "delta_r": [
+                "L8",
+                "L9"
+            ],
+            "poav": [
+                "L10",
+                "L11"
+            ],
+            "time_island": [
+                "L5",
+                "L6"
+            ],
+            "step_ledger": [
+                "L9"
+            ],
+            "guardian": [
+                "L12"
+            ]
+        }
+    }
+}

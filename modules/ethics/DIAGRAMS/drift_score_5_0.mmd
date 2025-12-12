@@ -1,0 +1,15 @@
+graph LR
+  subgraph Metrics
+    A[A] --> DS[Drift Score]
+    C[C] --> DS
+    V[V] --> DS
+    R[R] --> DS
+    L[L] --> DS
+    O[O] --> DS
+    Q[Q] --> DS
+    Sg[Sg] --> DS
+    P[P] --> DS
+  end
+  DS --> Gate{warn/fail}
+  Gate -->|pass| OK[PASS]
+  Gate -->|warn| FIX[Repair lowest scoring step]

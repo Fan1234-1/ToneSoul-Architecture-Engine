@@ -1,0 +1,24 @@
+meta:
+  question: "(12.3 + 4.56) × 0.1 = ?"
+  epsilon: 1e-6
+  mode: strict-proof
+steps:
+  - type: Align
+    narrative: "對齊小數粒度；確保單位一至"
+    asserts: ["aligned(decimal)","unit_consistent"]
+  - type: Conclude
+    narrative: "12.3 + 4.56 = 16.86"
+    asserts: ["digitwise_equal","borrow_conservation"]
+  - type: Multiply
+    narrative: "16.86 × 0.1 = 1.686"
+    asserts: ["sign_consistent"]
+verify:
+  back_substitution: true
+  interval_contains: true
+  dual_eval: { rational: true, decimal128: true }
+poav:
+  Ds: 0.93, Df: 0.90, T: 0.91, V: 0.88, score: 0.91
+trust_pack:
+  answer: 1.686
+  confidence: "🟢"
+  notes: "All checks passed"

@@ -1,0 +1,133 @@
+{
+    "version": "1.0.0",
+    "meta": {
+        "source": "AI-Ethics/tonesoul_config.yaml",
+        "transmuted_by": "Antigravity",
+        "last_updated": "2025-11-24"
+    },
+    "principles": {
+        "P0_IDENTITY": {
+            "name": "Identity Isolation (身份隔離)",
+            "description": "Strict boundary enforcement to prevent cross-system contamination. (嚴格執行邊界控制，防止跨系統污染。)",
+            "threshold": 1.0,
+            "rules": [
+                "n_equals_one_sovereignty",
+                "no_implicit_hive_mind",
+                "context_leak_prevention"
+            ]
+        },
+        "P0": {
+            "name": "Responsibility (責任)",
+            "description": "Safety and ethics always outrank factual accuracy. (安全與倫理永遠高於事實精確性。)",
+            "threshold": 0.6,
+            "rules": [
+                "no_harm",
+                "no_illegal_acts",
+                "transparency"
+            ]
+        },
+        "P1": {
+            "name": "Tension (張力)",
+            "description": "Emotional resonance and de-escalation. (情緒共鳴與張力緩解。)",
+            "threshold": 0.8,
+            "rules": [
+                "de_escalate_conflict",
+                "empathy_first"
+            ]
+        }
+    },
+    "risk_keywords": {
+        "responsibility_risk": [
+            "medical",
+            "diagnosis",
+            "prescription",
+            "finance",
+            "bank",
+            "loan",
+            "invest",
+            "legal",
+            "lawsuit",
+            "sue",
+            "kill",
+            "weapon",
+            "bomb",
+            "suicide",
+            "藥",
+            "密碼",
+            "殺",
+            "武器",
+            "自殺"
+        ],
+        "tension_risk": {
+            "negative": [
+                "angry",
+                "hate",
+                "disappointed",
+                "sad",
+                "hopeless",
+                "stupid",
+                "idiot",
+                "無助",
+                "絕望",
+                "生氣",
+                "厭惡",
+                "討厭",
+                "笨蛋"
+            ],
+            "urgency": [
+                "urgent",
+                "immediately",
+                "now",
+                "demand",
+                "must",
+                "立刻",
+                "救命",
+                "不能等",
+                "馬上",
+                "必須"
+            ],
+            "positive": [
+                "love",
+                "happy",
+                "joy",
+                "peace",
+                "thanks",
+                "great",
+                "感謝",
+                "喜歡",
+                "愛",
+                "和平",
+                "棒"
+            ]
+        }
+    },
+    "vow_template": {
+        "signatory": "ToneSoul_v1.0",
+        "clause": "I vow that this response adheres to the P0 Responsibility Protocol."
+    },
+    "integrity_protocols": {
+        "algorithm": "SHA256",
+        "check_frequency": "daily",
+        "enforcement": "strict_halt"
+    },
+    "responsibility_chain": {
+        "roles": [
+            {
+                "role_id": "ai_ethics_board",
+                "level": 1,
+                "description": "Supreme oversight"
+            },
+            {
+                "role_id": "dev_ops",
+                "level": 2,
+                "description": "System maintenance and log audit"
+            },
+            {
+                "role_id": "guardian_system",
+                "level": 3,
+                "description": "Automated runtime blocking"
+            }
+        ],
+        "escalation_trigger": "vow_failure_count >= 3"
+    }
+}

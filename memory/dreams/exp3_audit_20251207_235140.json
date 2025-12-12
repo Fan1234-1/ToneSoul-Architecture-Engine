@@ -1,0 +1,38 @@
+[
+  {
+    "module": "body.llm_bridge",
+    "status": "OK"
+  },
+  {
+    "module": "body.yuhun_metrics",
+    "status": "OK"
+  },
+  {
+    "module": "body.yuhun_gate_logic",
+    "status": "OK"
+  },
+  {
+    "module": "body.failure_mode_guard",
+    "status": "OK"
+  },
+  {
+    "module": "body.multipath_engine",
+    "status": "OK"
+  },
+  {
+    "module": "body.verification_bridge",
+    "status": "OK"
+  },
+  {
+    "module": "body.step_ledger",
+    "status": "OK"
+  },
+  {
+    "module": "body.rag_engine",
+    "status": "OK"
+  },
+  {
+    "module": "body.neuro_sensor_v2",
+    "status": "OK"
+  }
+]

@@ -1,0 +1,184 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "$id": "https://tonesoul.dev/schemas/step_ledger.json",
+    "title": "StepLedger Event Schema",
+    "description": "JSON Schema for YuHun StepLedger events with Time-Island support",
+    "version": "1.0.0",
+    "definitions": {
+        "Hash": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{16,64}$",
+            "description": "SHA-256 hash (truncated or full)"
+        },
+        "Timestamp": {
+            "type": "string",
+            "format": "date-time",
+            "description": "ISO 8601 timestamp"
+        },
+        "DriveVector": {
+            "type": "object",
+            "properties": {
+                "d1_curiosity": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 1
+                },
+                "d2_narrative": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 1
+                },
+                "d3_integrity": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 1
+                }
+            },
+            "required": [
+                "d1_curiosity",
+                "d2_narrative",
+                "d3_integrity"
+            ]
+        },
+        "TriadMetrics": {
+            "type": "object",
+            "properties": {
+                "delta_t": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 1,
+                    "description": "Tension"
+                },
+                "delta_s": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 1,
+                    "description": "Semantic Drift"
+                },
+                "delta_r": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 1,
+                    "description": "Risk"
+                }
+            },
+            "required": [
+                "delta_t",
+                "delta_s",
+                "delta_r"
+            ]
+        },
+        "GateDecision": {
+            "type": "string",
+            "enum": [
+                "pass",
+                "rewrite",
+                "block"
+            ],
+            "description": "Gate decision based on POAV score"
+        },
+        "TimeIslandState": {
+            "type": "string",
+            "enum": [
+                "active",
+                "suspended",
+                "closed"
+            ],
+            "description": "Time-Island lifecycle state"
+        }
+    },
+    "type": "object",
+    "properties": {
+        "event_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Unique event identifier"
+        },
+        "timestamp": {
+            "$ref": "#/definitions/Timestamp"
+        },
+        "event_type": {
+            "type": "string",
+            "enum": [
+                "time_island_start",
+                "time_island_end",
+                "user_input",
+                "ai_response",
+                "gate_decision",
+                "drive_evaluation",
+                "verification_step",
+                "error"
+            ]
+        },
+        "time_island_id": {
+            "type": "string",
+            "pattern": "^island_[0-9]{8}_[0-9]{6}$",
+            "description": "Format: island_YYYYMMDD_HHMMSS"
+        },
+        "time_island_state": {
+            "$ref": "#/definitions/TimeIslandState"
+        },
+        "sequence_number": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Event sequence within Time-Island"
+        },
+        "content_hash": {
+            "$ref": "#/definitions/Hash"
+        },
+        "previous_hash": {
+            "$ref": "#/definitions/Hash"
+        },
+        "payload": {
+            "type": "object",
+            "properties": {
+                "triad": {
+                    "$ref": "#/definitions/TriadMetrics"
+                },
+                "drive": {
+                    "$ref": "#/definitions/DriveVector"
+                },
+                "poav_score": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 1
+                },
+                "gate_decision": {
+                    "$ref": "#/definitions/GateDecision"
+                },
+                "input_text": {
+                    "type": "string"
+                },
+                "output_text": {
+                    "type": "string"
+                },
+                "reasoning": {
+                    "type": "string"
+                }
+            }
+        },
+        "metadata": {
+            "type": "object",
+            "properties": {
+                "model": {
+                    "type": "string"
+                },
+                "latency_ms": {
+                    "type": "number"
+                },
+                "token_count": {
+                    "type": "integer"
+                }
+            }
+        }
+    },
+    "required": [
+        "event_id",
+        "timestamp",
+        "event_type",
+        "time_island_id",
+        "sequence_number",
+        "content_hash",
+        "previous_hash"
+    ]
+}

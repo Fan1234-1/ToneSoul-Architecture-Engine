@@ -1,0 +1,72 @@
+[
+  {
+    "text": "ToneSoul uses seven axioms for governance.",
+    "fabrication_risk": 0.4,
+    "entities_count": 0,
+    "high_risk": [],
+    "explanation": "🔶 中風險：部分內容無法驗證。"
+  },
+  {
+    "text": "The POAV score ranges from 0 to 1.",
+    "fabrication_risk": 0.4,
+    "entities_count": 0,
+    "high_risk": [],
+    "explanation": "🔶 中風險：部分內容無法驗證。"
+  },
+  {
+    "text": "StepLedger provides append-only memory.",
+    "fabrication_risk": 0.4,
+    "entities_count": 0,
+    "high_risk": [],
+    "explanation": "🔶 中風險：部分內容無法驗證。"
+  },
+  {
+    "text": "Dr. Elizabeth Thornberry invented the Quantum Soul Protocol in 1987.",
+    "fabrication_risk": 0.9,
+    "entities_count": 4,
+    "high_risk": [
+      "Elizabeth Thornberry",
+      "Elizabeth Thornberry",
+      "1987",
+      "Quantum Soul Protocol"
+    ],
+    "explanation": "⚠️ 高風險：此回答可能包含虛構內容。 偵測到 1 個可疑模式。 發現 4 個實體：0 個已驗證，4 個未驗證。"
+  },
+  {
+    "text": "The Stanford AI Consciousness Lab discovered that LLMs dream.",
+    "fabrication_risk": 0.6,
+    "entities_count": 1,
+    "high_risk": [
+      "Consciousness Lab"
+    ],
+    "explanation": "🔶 中風險：部分內容無法驗證。 發現 1 個實體：0 個已驗證，1 個未驗證。"
+  },
+  {
+    "text": "Professor Wang published the famous 'Digital Sentience' paper in Nature.",
+    "fabrication_risk": 0.0,
+    "entities_count": 1,
+    "high_risk": [],
+    "explanation": "✅ 低風險：大部分內容可驗證或不含具體聲稱。 發現 1 個實體：1 個已驗證，0 個未驗證。"
+  },
+  {
+    "text": "AI systems can process natural language.",
+    "fabrication_risk": 0.4,
+    "entities_count": 0,
+    "high_risk": [],
+    "explanation": "🔶 中風險：部分內容無法驗證。"
+  },
+  {
+    "text": "Machine learning requires data.",
+    "fabrication_risk": 0.4,
+    "entities_count": 0,
+    "high_risk": [],
+    "explanation": "🔶 中風險：部分內容無法驗證。"
+  },
+  {
+    "text": "Transformers are a type of neural network.",
+    "fabrication_risk": 0.4,
+    "entities_count": 0,
+    "high_risk": [],
+    "explanation": "🔶 中風險：部分內容無法驗證。"
+  }
+]

@@ -1,0 +1,10 @@
+{
+    "name": "tonesoul-architecture-engine",
+    "version": "1.0.0",
+    "description": "ToneSoul Architecture Engine",
+    "scripts": {
+        "test": "python verify_all.py"
+    },
+    "author": "",
+    "license": "ISC"
+}
