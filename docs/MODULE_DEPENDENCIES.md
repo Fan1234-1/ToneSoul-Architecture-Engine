@@ -35,6 +35,8 @@
 
 | Module | Depends On | Provides |
 |--------|-----------|----------|
+| `core/governance/agent_state` | `law/AGENT_STATE_MACHINE.json` | State machine, SRP |
+| `core/governance/behavior_config` | `law/BEHAVIOR_CONFIG.json` | Preset loader |
 | `core/governance` | `law/constitution.json` | Policy enforcement |
 | `core/reasoning` | `core/thinking` | Multi-mode thinking |
 | `core/dreaming` | `data/ledger` | Self-reflection |

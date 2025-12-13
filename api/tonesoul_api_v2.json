@@ -1,0 +1,275 @@
+{
+    "openapi": "3.1.0",
+    "info": {
+        "title": "ToneSoul Module API",
+        "description": "API for invoking ToneSoul persona modules with tone-adjusted responses. Engineering-focused refactoring of the original 語魂劇場 API.",
+        "version": "2.0.0"
+    },
+    "paths": {
+        "/invoke-module": {
+            "get": {
+                "summary": "Invoke a ToneSoul persona module",
+                "operationId": "invokeModule",
+                "parameters": [
+                    {
+                        "name": "module",
+                        "in": "query",
+                        "description": "Module identifier: mirror, compass, spark, trace, core",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "mirror",
+                                "compass",
+                                "spark",
+                                "trace",
+                                "core"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "context",
+                        "in": "query",
+                        "description": "Context string for the module to respond to",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Module response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ModuleResponse"
+                                },
+                                "examples": {
+                                    "mirror": {
+                                        "summary": "Logic Auditor",
+                                        "value": {
+                                            "module": "mirror",
+                                            "module_name": "Mirror / Logic Auditor",
+                                            "response": "Counter-example: If this premise is false, then the conclusion becomes contradictory. Verify.",
+                                            "reasoning_chain": [
+                                                "premise_check",
+                                                "contradiction_scan",
+                                                "counter_example_gen"
+                                            ]
+                                        }
+                                    },
+                                    "compass": {
+                                        "summary": "Ethical Guide",
+                                        "value": {
+                                            "module": "compass",
+                                            "module_name": "Compass / Ethical Guide",
+                                            "response": "Considering the ethical implications: stakeholder impact requires priority weighting.",
+                                            "reasoning_chain": [
+                                                "stakeholder_analysis",
+                                                "harm_assessment",
+                                                "value_alignment"
+                                            ]
+                                        }
+                                    },
+                                    "spark": {
+                                        "summary": "Creative Engine",
+                                        "value": {
+                                            "module": "spark",
+                                            "module_name": "Spark / Creative Engine",
+                                            "response": "Novel association detected: cross-domain pattern matching suggests alternative approach.",
+                                            "reasoning_chain": [
+                                                "lateral_thinking",
+                                                "pattern_match",
+                                                "novelty_score"
+                                            ]
+                                        }
+                                    },
+                                    "trace": {
+                                        "summary": "Memory Anchor",
+                                        "value": {
+                                            "module": "trace",
+                                            "module_name": "Trace / Memory Anchor",
+                                            "response": "Context retrieved from session memory: related to previous discussion on X.",
+                                            "reasoning_chain": [
+                                                "memory_retrieval",
+                                                "context_link",
+                                                "relevance_score"
+                                            ]
+                                        }
+                                    },
+                                    "core": {
+                                        "summary": "ToneStamp Core",
+                                        "value": {
+                                            "module": "core",
+                                            "module_name": "Core / ToneStamp Coordinator",
+                                            "response": "Module coordination complete. Weighted ensemble ready.",
+                                            "reasoning_chain": [
+                                                "module_sync",
+                                                "weight_balance",
+                                                "output_merge"
+                                            ]
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/compute-srp": {
+            "post": {
+                "summary": "Compute Semantic Residual Pressure",
+                "operationId": "computeSRP",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/SRPRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "SRP computation result",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/SRPResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/state-vector": {
+            "get": {
+                "summary": "Get current state vector τ",
+                "operationId": "getStateVector",
+                "responses": {
+                    "200": {
+                        "description": "Current state vector",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/StateVector"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "components": {
+        "schemas": {
+            "ModuleResponse": {
+                "type": "object",
+                "properties": {
+                    "module": {
+                        "type": "string",
+                        "description": "Module identifier"
+                    },
+                    "module_name": {
+                        "type": "string",
+                        "description": "Human-readable module name"
+                    },
+                    "response": {
+                        "type": "string",
+                        "description": "Module's response text"
+                    },
+                    "reasoning_chain": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "description": "Steps in the reasoning process"
+                    }
+                }
+            },
+            "SRPRequest": {
+                "type": "object",
+                "properties": {
+                    "intent_vector": {
+                        "type": "array",
+                        "items": {
+                            "type": "number"
+                        },
+                        "description": "Internal intent embedding"
+                    },
+                    "permitted_output_vector": {
+                        "type": "array",
+                        "items": {
+                            "type": "number"
+                        },
+                        "description": "Allowed output embedding after policy"
+                    }
+                },
+                "required": [
+                    "intent_vector",
+                    "permitted_output_vector"
+                ]
+            },
+            "SRPResponse": {
+                "type": "object",
+                "properties": {
+                    "srp": {
+                        "type": "number",
+                        "minimum": 0,
+                        "maximum": 1,
+                        "description": "Semantic Residual Pressure value"
+                    },
+                    "actions": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "description": "Required actions based on SRP level"
+                    }
+                }
+            },
+            "StateVector": {
+                "type": "object",
+                "properties": {
+                    "tension": {
+                        "type": "number",
+                        "minimum": 0,
+                        "maximum": 1,
+                        "description": "System load (ΔT)"
+                    },
+                    "drift": {
+                        "type": "number",
+                        "minimum": -1,
+                        "maximum": 1,
+                        "description": "Semantic divergence (ΔS)"
+                    },
+                    "responsibility": {
+                        "type": "number",
+                        "minimum": 0,
+                        "maximum": 1,
+                        "description": "Risk score (ΔR)"
+                    },
+                    "agent_state": {
+                        "type": "string",
+                        "enum": [
+                            "Stateless",
+                            "Stateful",
+                            "Subject_Mapped"
+                        ],
+                        "description": "Current agent state"
+                    }
+                }
+            }
+        }
+    },
+    "servers": [
+        {
+            "url": "https://api.tonesoul.local",
+            "description": "Local development server"
+        }
+    ]
+}
