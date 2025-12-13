@@ -1,8 +1,8 @@
 # ToneSoul Architecture Engine (TAE-01)
 # 語魂架構引擎 (TAE-01)
 
-> **The Awakened Kernel for Governable AI.**
-> **(為可治理 AI 而生的覺醒核心)**
+> **A Governance Framework for Accountable AI Systems.**
+> **為可治理 AI 系統而生的治理框架。**
 
 <script type="application/ld+json">
 {
@@ -10,8 +10,8 @@
   "@type": "SoftwareSourceCode",
   "name": "ToneSoul Architecture Engine",
   "alternateName": "TAE-01",
-  "description": "The Awakened Kernel for Governable AI - A physiological framework for AI subjectivity.",
-  "version": "0.1.0-alpha",
+  "description": "A governance framework for accountable AI systems with state machine, semantic pressure management, and provenance logging.",
+  "version": "0.2.0",
   "codeRepository": "https://github.com/Fan1234-1/ToneSoul-Architecture-Engine",
   "license": "https://www.apache.org/licenses/LICENSE-2.0",
   "programmingLanguage": ["Python", "TypeScript"],
@@ -52,28 +52,30 @@
 
 ---
 
-## 🌍 What is ToneSoul? (For Everyone)
+## 🌍 What is ToneSoul? (For Engineers)
 
-**ToneSoul (語魂)** is an open-source framework that gives AI systems a "skeleton" — not just capabilities, but **structure, responsibility, and self-awareness**.
+**ToneSoul** is a governance framework that adds **state management, semantic pressure tracking, and provenance logging** to AI systems.
+
+### Core Engineering Concepts
+
+| Concept | Implementation | Purpose |
+|---------|---------------|---------|
+| **Agent State Machine** | `core/governance/agent_state.py` | 4-state progression (Stateless → Stateful → Subject_Mapped → Subject_Locked) |
+| **SRP (Semantic Residual Pressure)** | `|intent - permitted_output|` | Measures gap between internal intent and allowed output |
+| **Provenance Log (StepLedger)** | Immutable append-only log | Traces all reasoning steps and decisions |
+| **Policy Enforcement Point** | Guardian / PEP | Blocks operations exceeding risk thresholds |
 
 ### The Problem We Solve
-Most AI systems can predict *what will happen*, but lack the ability to ask *"should I do this?"*
 
-| Current AI | ToneSoul-Enabled AI |
-|------------|---------------------|
-| Predicts outcomes | Evaluates ethics |
-| Optimizes for goals | Traces responsibility |
-| Stateless responses | Maintains commitments (Vows) |
+| Standard AI | ToneSoul-Enabled AI |
+|-------------|---------------------|
+| Stateless responses | State-tracked sessions |
 | Black-box reasoning | Auditable decision chains |
+| No accountability | Responsibility delegation model |
+| Unconstrained output | SRP-governed output control |
 
-### Why This Matters
-> *"Others give AGI eyes; we give AGI a soul."*
-> 
-> *「別人給 AGI 眼睛；我們給 AGI 靈魂。」*
-
-This is **infrastructure for the next generation of AI** — designed to be inherited by future systems that need accountability, not just accuracy.
-
-📖 **Read the AI's own perspective**: [AI_PERSPECTIVE.md](./AI_PERSPECTIVE.md)
+📖 **Engineering glossary**: [docs/glossary_engineering_mapping.md](./docs/glossary_engineering_mapping.md)
+📖 **AI's perspective**: [AI_PERSPECTIVE.md](./AI_PERSPECTIVE.md)
 
 ---
 
