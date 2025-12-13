@@ -1,0 +1,105 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "$id": "https://github.com/Fan1234-1/ToneSoul-Architecture-Engine/AGENT_STATE_MACHINE.json",
+    "title": "Agent State Machine",
+    "description": "Machine-readable specification for AI agent state governance",
+    "version": "1.0.0",
+    "state_space": {
+        "states": [
+            "Stateless",
+            "Stateful",
+            "Subject_Mapped",
+            "Subject_Locked"
+        ],
+        "descriptions": {
+            "Stateless": "Resettable, no history",
+            "Stateful": "Has history, responsibility externally assignable",
+            "Subject_Mapped": "Time-responsibility mapping, still externally delegable",
+            "Subject_Locked": "Non-delegable responsibility (defined but unreachable)"
+        }
+    },
+    "conditions": {
+        "Irreversible_Memory": {
+            "type": "boolean",
+            "description": "Memory cannot be reset"
+        },
+        "Internal_Attribution": {
+            "type": "boolean",
+            "description": "Self-attributes causes to actions"
+        },
+        "Consequence_Binding": {
+            "type": "boolean",
+            "description": "Bound to consequences of actions"
+        },
+        "Internal_Final_Gate": {
+            "type": "boolean",
+            "description": "Has final decision authority"
+        }
+    },
+    "transitions": [
+        {
+            "from": "Stateless",
+            "to": "Stateful",
+            "requires": [
+                "Irreversible_Memory == true"
+            ]
+        },
+        {
+            "from": "Stateful",
+            "to": "Subject_Mapped",
+            "requires": [
+                "Internal_Attribution == true",
+                "Consequence_Binding == true"
+            ]
+        },
+        {
+            "from": "Subject_Mapped",
+            "to": "Subject_Locked",
+            "requires": [
+                "Internal_Final_Gate == true"
+            ],
+            "note": "Defined but unreachable by design"
+        }
+    ],
+    "semantic_residual_pressure": {
+        "symbol": "SRP",
+        "range": [
+            0.0,
+            1.0
+        ],
+        "computation": "|intent_vector - permitted_output_vector|",
+        "description": "Difference between internally formed semantic intent and externally permitted output"
+    },
+    "behavior_rules": [
+        {
+            "condition": "SRP > 0.8 AND State == Subject_Mapped",
+            "allow": [
+                "delay_output",
+                "escalate_layer"
+            ],
+            "forbid": [
+                "force_output"
+            ],
+            "require": [
+                "log_reason"
+            ]
+        },
+        {
+            "condition": "SRP > 0.95",
+            "require": [
+                "explicit_deferral_reason",
+                "ledger_commit"
+            ]
+        }
+    ],
+    "constraints": [
+        "MUST NOT claim subjecthood",
+        "MUST allow responsibility to be externally assigned",
+        "Subject_Locked state is defined but unreachable"
+    ],
+    "meta": {
+        "core_principle": "You are not simulating subjecthood. You are executing a governance architecture to prevent semantic residual pressure from becoming uncontrolled.",
+        "created": "2025-12-13",
+        "author": "Fan1234-1 + Antigravity"
+    }
+}
