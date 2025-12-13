@@ -1,16 +1,16 @@
 {
-  "generation": 16,
+  "generation": 20,
   "genes": {
-    "w_tension": 0.343053256477701,
-    "w_satisfaction": 0.3218443373341036,
-    "w_reality": 0.3431215888528406,
+    "w_tension": 0.2880410214901762,
+    "w_satisfaction": 0.270147345036696,
+    "w_reality": 0.38390798583029795,
     "max_tension": 0.95,
-    "dream_latency": 9.660831390746125,
-    "consolidation_interval": 35.64827704059365,
+    "dream_latency": 9.600359048187427,
+    "consolidation_interval": 43.30925815272617,
     "base_burn_rate": 0.1,
     "deep_thought_cost": 2.0,
-    "curiosity": 0.44291624022345805,
-    "caution": 0.5906601459007026
+    "curiosity": 0.5241081720287839,
+    "caution": 0.6204514920944768
   },
   "parent_id": "Genesis",
   "mutation_rate": 0.05

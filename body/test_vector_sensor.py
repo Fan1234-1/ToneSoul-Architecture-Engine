@@ -1,6 +1,6 @@
 
 from .spine_system import SpineEngine
-from neuro_sensor_v2 import VectorNeuroSensor
+from .neuro_sensor_v2 import VectorNeuroSensor
 import os
 
 
