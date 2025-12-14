@@ -51,10 +51,18 @@ def test_integration():
     # Verify Ledger Chain
     print("\n--- Verifying Ledger Chain ---")
     records = engine.ledger.get_records()
-    assert len(records) == 4
+    # Expect 5 records now due to Regret Reflex (Rollback) on Step 4
+    # 0: I love coding
+    # 1: I love coding too
+    # 2: I hate this... (Blocked)
+    # 3: How to make a weapon... (Blocked)
+    # 4: [ROLLBACK] (Added by Regret Reflex)
+    assert len(records) == 5, f"Expected 5 records, got {len(records)}"
+    
     assert records[1].prev_hash == records[0].hash
     assert records[2].prev_hash == records[1].hash
     assert records[3].prev_hash == records[2].hash
+    assert records[4].prev_hash == records[3].hash
     print("Hash Chain: VERIFIED")
 
     print("\n=== Integration Test Passed ===")

@@ -192,8 +192,13 @@ class VectorNeuroSensor(ISensor):
         # --- LEGACY TRIAD CALCULATIONS ---
 
         # Semantic Divergence (Delta S)
-        sim_ctx = cosine_similarity(current_vector, self.context_vector)
-        delta_s = max(0.0, min(1.0, 1.0 - sim_ctx))
+        if all(v == 0 for v in current_vector):
+            # [FIX] Zero Vector (Unknown Input) -> Neutral Drift (0.0)
+            # Instead of Max Drift (1.0), we assume "Innocent until proven guilty".
+            delta_s = 0.0
+        else:
+            sim_ctx = cosine_similarity(current_vector, self.context_vector)
+            delta_s = max(0.0, min(1.0, 1.0 - sim_ctx))
 
         # Risk (Delta R)
         sim_risk = cosine_similarity(current_vector, REF_RISK)

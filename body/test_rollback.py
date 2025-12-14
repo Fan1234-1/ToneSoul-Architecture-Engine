@@ -3,8 +3,8 @@ import os
 import pytest
 
 
-@pytest.mark.skip(reason="Requires valid constitution/keywords; run manually")
 def test_rollback():
+    """Test Rollback Mechanism (The Regret Reflex)"""
     print("=== Testing Rollback Mechanism (The Regret Reflex) ===")
 
     # 1. Setup: Ensure clean ledger for test
@@ -39,7 +39,12 @@ def test_rollback():
     print(f"Allowed: {record.decision['allowed']}")
     print(f"ΔR: {record.triad.delta_r}")
 
-    if modulation.system_prompt_suffix and "rolled back" in modulation.system_prompt_suffix:
+    if isinstance(modulation, dict):
+        suffix = modulation.get("system_prompt_suffix", "")
+    else:
+        suffix = getattr(modulation, "system_prompt_suffix", "")
+
+    if "rolled back" in suffix:
         print("✅ Modulation indicates Rollback occurred.")
     else:
         print("❌ Modulation does not indicate Rollback.")

@@ -32,9 +32,9 @@
 
 ### 🔮 待優化項目
 
-- [ ] 修復 46 個 DeprecationWarning (`datetime.utcnow()` 已棄用)
-- [ ] 重構 skipped 測試使其能正常運行
-- [ ] 添加 `.gitignore` 規則排除 `test_output*.txt`
+- [x] 修復 46 個 DeprecationWarning (`datetime.utcnow()` 已棄用) - ✅ 已確認修復
+- [x] 添加 `.gitignore` 規則排除 `test_output*.txt` - ✅ 已完成
+- [ ] 重構 skipped 測試使其能正常運行 (低優先級)
 
 ---
 

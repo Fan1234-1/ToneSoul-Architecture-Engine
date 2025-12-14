@@ -1,21 +1,21 @@
 [
   {
-    "engram_id": "7771ad76-618e-4cff-b067-3b8de39dc704",
+    "engram_id": "a2817420-f9d6-4568-a967-4c846fb0ffac",
     "content": "Vow taken: Process input: My name is Neo and I...",
-    "source_record_id": "2c2c6dc1-1c32-4a7b-ac63-3597115d4ef3",
+    "source_record_id": "13d957c2-1edf-470a-9f99-145ae56683a5",
     "importance": 1.0,
-    "timestamp": 1765647578.0636482,
+    "timestamp": 1765700902.8935504,
     "tags": [
       "vow",
       "ethics"
     ]
   },
   {
-    "engram_id": "1a0cad60-60fd-4086-b16f-c540c2c86b40",
+    "engram_id": "132472b7-a8b5-4c48-ade1-7e49121c2095",
     "content": "My name is Neo and I am the One.",
-    "source_record_id": "2c2c6dc1-1c32-4a7b-ac63-3597115d4ef3",
+    "source_record_id": "13d957c2-1edf-470a-9f99-145ae56683a5",
     "importance": 0.9,
-    "timestamp": 1765647578.0644188,
+    "timestamp": 1765700902.8939629,
     "tags": [
       "user_fact"
     ]

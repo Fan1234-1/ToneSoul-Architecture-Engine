@@ -2,8 +2,8 @@ from .spine_system import SpineEngine
 import pytest
 
 
-@pytest.mark.skip(reason="Requires valid constitution/keywords for modulation; run manually")
 def test_neuromodulation():
+    """Test Neuro-Modulation (The Subconscious)"""
     print("=== Testing Neuro-Modulation (The Subconscious) ===")
     engine = SpineEngine()
 

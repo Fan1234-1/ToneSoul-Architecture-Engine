@@ -871,7 +871,14 @@ class SpineEngine:
                 confidence=1.0
             )
 
-            return record, {}, friction_thought
+            # [NEW] Regret Reflex (Rollback) for High Risk
+            modulation = {}
+            if triad.delta_r > 0.8:
+                 print(f"⚠️ activating Regret Reflex (ΔR={triad.delta_r:.2f})...")
+                 self.ledger.rollback(self.vow_id)
+                 modulation = {"system_prompt_suffix": "[System: Memory rolled back due to High Risk]"}
+
+            return record, modulation, friction_thought
 
         # 2.5 Accuracy Check (Hook)
         verification = {}

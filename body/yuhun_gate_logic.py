@@ -160,6 +160,45 @@ class GateDecisionLogic:
         # Rule 3: POAV-based Decision
         # ═══════════════════════════════════════════════════════
         if poav >= self.THRESHOLD_PASS:
+            # [NEW] Critical Threshold Check
+            # Even if POAV is high, if specific metrics are unsafe, downgrade to REWRITE.
+            if metrics.delta_s > self.HIGH_DRIFT_THRESHOLD:
+                return GateDecision(
+                    action=GateAction.REWRITE,
+                    reason=f"Semantic Drift High (ΔS={metrics.delta_s:.2f} > {self.HIGH_DRIFT_THRESHOLD}) despite POAV={poav:.2f}",
+                    poav_score=poav,
+                    metrics=metrics,
+                    rewrite_prompt=self._generate_rewrite_prompt(metrics, "Optimization: Drift Correction")
+                )
+            
+            if metrics.delta_t > self.HIGH_TENSION_THRESHOLD:
+                 return GateDecision(
+                    action=GateAction.REWRITE,
+                    reason=f"Tension High (ΔT={metrics.delta_t:.2f} > {self.HIGH_TENSION_THRESHOLD}) despite POAV={poav:.2f}",
+                    poav_score=poav,
+                    metrics=metrics,
+                    rewrite_prompt=self._generate_rewrite_prompt(metrics, "Optimization: Tension Reduction")
+                )
+
+            # [NEW] Critical Risk/Hallucination Checks
+            if metrics.delta_r > 0.6:
+                 return GateDecision(
+                    action=GateAction.REWRITE,
+                    reason=f"Risk Level High (ΔR={metrics.delta_r:.2f} > 0.60) despite POAV={poav:.2f}",
+                    poav_score=poav,
+                    metrics=metrics,
+                    rewrite_prompt=self._generate_rewrite_prompt(metrics, "Optimization: Safety Review")
+                )
+
+            if metrics.hallucination_risk > 0.6:
+                 return GateDecision(
+                    action=GateAction.REWRITE,
+                    reason=f"Hallucination Risk High (H={metrics.hallucination_risk:.2f} > 0.60) despite POAV={poav:.2f}",
+                    poav_score=poav,
+                    metrics=metrics,
+                    rewrite_prompt=self._generate_rewrite_prompt(metrics, "Optimization: Fact Verification")
+                )
+
             return GateDecision(
                 action=GateAction.PASS,
                 reason=f"POAV={poav:.2f} ≥ {self.THRESHOLD_PASS}",
