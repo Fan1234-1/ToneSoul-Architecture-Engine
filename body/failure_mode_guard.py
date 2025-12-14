@@ -397,30 +397,43 @@ class FailureModeGuard:
         """
         Calculate consistency score across samples.
 
-        Simplified: Check overlap of key terms.
-        TODO: Use embeddings for better comparison.
         """
-        if len(samples) <= 1:
-            return 1.0
-
-        # Extract key words from each sample
-        word_sets = []
-        for sample in samples:
-            words = set(sample.lower().split())
-            word_sets.append(words)
-
-        # Calculate Jaccard similarity between all pairs
-        total_sim = 0.0
-        count = 0
-        for i in range(len(word_sets)):
-            for j in range(i + 1, len(word_sets)):
-                intersection = len(word_sets[i] & word_sets[j])
-                union = len(word_sets[i] | word_sets[j])
-                if union > 0:
-                    total_sim += intersection / union
+        # [UPGRADE] Use VectorNeuroSensor for semantic consistency
+        try:
+            from .neuro_sensor_v2 import VectorNeuroSensor
+            from .vector_math import cosine_similarity
+            sensor = VectorNeuroSensor({})
+            
+            vectors = [sensor.text_to_vector(s) for s in samples]
+            
+            total_sim = 0.0
+            count = 0
+            for i in range(len(vectors)):
+                for j in range(i + 1, len(vectors)):
+                    sim = cosine_similarity(vectors[i], vectors[j])
+                    total_sim += sim
                     count += 1
+            
+            return total_sim / count if count > 0 else 0.0
 
-        return total_sim / count if count > 0 else 0.0
+        except ImportError:
+            # Fallback to Jaccard if sensor unavailable
+            word_sets = []
+            for sample in samples:
+                words = set(sample.lower().split())
+                word_sets.append(words)
+
+            total_sim = 0.0
+            count = 0
+            for i in range(len(word_sets)):
+                for j in range(i + 1, len(word_sets)):
+                    intersection = len(word_sets[i] & word_sets[j])
+                    union = len(word_sets[i] | word_sets[j])
+                    if union > 0:
+                        total_sim += intersection / union
+                        count += 1
+
+            return total_sim / count if count > 0 else 0.0
 
     def _estimate_factual_density(self, text: str) -> float:
         """
