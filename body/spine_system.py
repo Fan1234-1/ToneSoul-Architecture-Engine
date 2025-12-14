@@ -617,8 +617,37 @@ from core.quantum.state import SoulState
 from body.quantum_bridge import map_to_soul_state, generate_wave_function
 from core.thinking.pipeline import ThinkingPipeline
 from core.llm.base import LLMProvider
-from core.thinking.pipeline import ThinkingPipeline
 from core.thinking.base import OperatorContext
+
+
+# ---------------------------------------------------------------------------
+# TSR State Representation (For Test Compatibility)
+# ---------------------------------------------------------------------------
+
+class ToneSoulState:
+    """State representation for ToneSoul State Representation (TSR) tests."""
+    
+    def __init__(self):
+        self.current_vector = [0.0, 0.0, 0.0]  # [delta_t, delta_s, delta_r]
+        self._decay_rate = 0.1
+    
+    def update(self, triad: ToneSoulTriad):
+        """Update state vector from triad."""
+        self.current_vector = [triad.delta_t, triad.delta_s, triad.delta_r]
+    
+    def force_decay(self, turns: int = 1):
+        """Simulate emotional decay over time."""
+        decay = (1 - self._decay_rate) ** turns
+        self.current_vector = [v * decay for v in self.current_vector]
+    
+    def get_triad(self) -> ToneSoulTriad:
+        """Get current state as ToneSoulTriad."""
+        return ToneSoulTriad(
+            delta_t=self.current_vector[0],
+            delta_s=self.current_vector[1],
+            delta_r=self.current_vector[2],
+            risk_score=(W_T * self.current_vector[0] + W_S * self.current_vector[1] + W_R * self.current_vector[2])
+        )
 
 
 class SpineEngine:
@@ -674,6 +703,14 @@ class SpineEngine:
         self.llm_provider = llm_provider
         if self.llm_provider:
             print(f"🧠 LLM Provider Active: {type(llm_provider).__name__}")
+
+        # === TEST COMPATIBILITY ATTRIBUTES ===
+        # Session Vow ID for tracking
+        self.vow_id = f"session-{uuid.uuid4().hex[:8]}"
+        # Governance alias (points to guardian for backward compatibility)
+        self.governance = self.guardian
+        # State representation for TSR tests
+        self.state = self._create_tsr_state()
 
     def process_signal(self, user_input: str, system_metrics: Dict[str, float] = None):
         # 0. Proprioception (Internal Sensing)
@@ -904,9 +941,6 @@ class SpineEngine:
 
         return record, modulation, thought_trace
 
-    def _check_monomania(self) -> bool:
-        """Checks if the soul is stuck in a single mode for too long."""
-        history = self.quantum_kernel.history
 
     def _check_monomania(self) -> bool:
         """Checks if the soul is stuck in a single mode for too long."""
@@ -924,6 +958,10 @@ class SpineEngine:
         # In a real system, this would clear memory or restart processes.
         self.sensor.context_vector = [0.0] * 5
         self.quantum_kernel.history.clear()
+
+    def _create_tsr_state(self) -> ToneSoulState:
+        """Create and return a ToneSoulState instance for TSR tests."""
+        return ToneSoulState()
 
 
 def _interactive_loop():

@@ -25,6 +25,7 @@ yarn-error.log
 # ToneSoul Specific
 ledger.jsonl
 *.log
+test_output*.txt
 
 # Privacy & Memory (DO NOT COMMIT)
 memory/*.jsonl

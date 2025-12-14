@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timezone
 import uuid
 import sys
 import os
@@ -28,7 +28,7 @@ def main():
         from yuhun.models import TimeIsland
         island = TimeIsland(
             island_id=island_id,
-            created_at=datetime.utcnow().isoformat(),
+            created_at=datetime.now(timezone.utc).isoformat(),
             title="Recovered Island",
         )
         state.active_island = island_id
@@ -85,7 +85,7 @@ def main():
         entry = ChronicleEntry(
             step_id=step_id,
             island_id=island.island_id,
-            timestamp=datetime.utcnow().isoformat(),
+            timestamp=datetime.now(timezone.utc).isoformat(),
             user_input=user_input[:MAX_INPUT_LEN],  # Apply limit
             model_reply_summary=clean_response[:MAX_SUMMARY_LEN],  # Use constant
             mode_used=meta.mode_used,

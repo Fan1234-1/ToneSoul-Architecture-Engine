@@ -59,7 +59,7 @@ class ConversationManager:
             "source": source,
             "score": score,
             "comment": comment,
-            "timestamp": datetime.datetime.utcnow().isoformat(),
+            "timestamp": datetime.datetime.now(datetime.timezone.utc).isoformat(),
         }
         self.feedback_log.append(entry)
 

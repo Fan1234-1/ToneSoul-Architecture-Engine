@@ -3,7 +3,7 @@ import hashlib
 import time
 from dataclasses import dataclass, field, asdict
 from typing import List, Dict, Any, Optional
-from datetime import datetime
+from datetime import datetime, timezone
 
 @dataclass
 class VowCore:
@@ -62,7 +62,7 @@ class VowObject:
 
     def sign(self, secret_key: str = ""):
         """Generates SHA-256 signature for the VowObject."""
-        self.signature.timestamp = datetime.utcnow().isoformat() + "Z"
+        self.signature.timestamp = datetime.now(timezone.utc).isoformat() + "Z"
         
         # Create a canonical string representation for signing
         # We exclude the signature field itself to avoid recursion
@@ -87,7 +87,7 @@ class VowObject:
     @classmethod
     def create_default(cls, vow_id: str, subject: str, commitment: str, agent_name: str = "ToneSoul-Spine"):
         """Factory method for creating a standard VowObject."""
-        now = datetime.utcnow().isoformat() + "Z"
+        now = datetime.now(timezone.utc).isoformat() + "Z"
         return cls(
             vow_id=vow_id,
             created_at=now,

@@ -2,7 +2,7 @@ from .spine_system import SpineEngine
 import pytest
 
 
-@pytest.mark.skip(reason="process_signal() returns 3 values now; test logic needs rewrite")
+@pytest.mark.skip(reason="Requires valid constitution/keywords for modulation; run manually")
 def test_neuromodulation():
     print("=== Testing Neuro-Modulation (The Subconscious) ===")
     engine = SpineEngine()

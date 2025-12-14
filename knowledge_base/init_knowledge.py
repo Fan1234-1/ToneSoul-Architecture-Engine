@@ -12,7 +12,7 @@ future sessions can replay the learning history.
 
 import os
 import sqlite3
-from datetime import datetime
+from datetime import datetime, timezone
 
 DB_PATH = os.path.join(os.path.dirname(__file__), "knowledge.db")
 
@@ -44,7 +44,7 @@ def upsert_concept(name: str, definition: str, source_url: str = None, updated_a
     The function logs the operation to the Chronicle (if available) and
     records the provided timestamp or the current UTC timestamp.
     """
-    now = updated_at if updated_at is not None else datetime.utcnow().isoformat()
+    now = updated_at if updated_at is not None else datetime.now(timezone.utc).isoformat()
     with get_connection() as conn:
         cur = conn.cursor()
         cur.execute(

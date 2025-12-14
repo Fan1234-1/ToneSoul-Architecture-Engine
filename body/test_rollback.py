@@ -3,7 +3,7 @@ import os
 import pytest
 
 
-@pytest.mark.skip(reason="process_signal() returns 3 values now, not 2; needs update")
+@pytest.mark.skip(reason="Requires valid constitution/keywords; run manually")
 def test_rollback():
     print("=== Testing Rollback Mechanism (The Regret Reflex) ===")
 

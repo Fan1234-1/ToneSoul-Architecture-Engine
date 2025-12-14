@@ -4,7 +4,7 @@ import uuid
 import shutil
 from pathlib import Path
 from typing import Optional, List, Dict, Any
-from datetime import datetime
+from datetime import datetime, timezone
 from .models import YuHunState, TimeIsland, ChronicleEntry, FSVector
 
 DB_PATH = Path("data/yuhun.db")
@@ -202,7 +202,7 @@ def load_state() -> YuHunState:
         island_id = str(uuid.uuid4())[:8]
         island = TimeIsland(
             island_id=island_id,
-            created_at=datetime.utcnow().isoformat(),
+            created_at=datetime.now(timezone.utc).isoformat(),
             title="Default Island",
         )
         save_island(island)
