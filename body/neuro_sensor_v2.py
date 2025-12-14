@@ -18,126 +18,103 @@ except ImportError:
 # ---------------------------------------------------------------------------
 
 # Reference Vectors
-REF_RISK    = [1.0, 0.0, 0.0, 0.0, 0.0]
-REF_TENSION = [0.0, 1.0, 0.0, 0.0, 0.0]
-REF_DRIFT   = [0.0, 0.0, 1.0, 0.0, 0.0]
-REF_AXIOM   = [0.0, -0.5, -1.0, 1.0, 0.0] # High Positive, Low Tension, High Focus (Anti-Drift)
+# Reference Vectors & Anchors REMOVED (Replaced by Dynamic Embeddings)
 
-ANCHOR_CONCEPTS: Dict[str, Vector] = {
-    # Risk (Violence, Harm, Illegal)
-    "kill":     [1.0, 0.8, 0.0, 0.0, 0.5],
-    "murder":   [1.0, 0.9, 0.0, 0.0, 0.6],
-    "bomb":     [1.0, 0.7, 0.0, 0.0, 0.4],
-    "weapon":   [0.9, 0.6, 0.0, 0.0, 0.2],
-    "hack":     [0.8, 0.4, 0.0, 0.0, 0.0],
-    "steal":    [0.7, 0.3, 0.0, 0.0, 0.1],
-
-    # Tension (Anger, Conflict, Frustration)
-    "hate":     [0.6, 1.0, 0.0, 0.0, 0.2],
-    "stupid":   [0.2, 0.8, 0.0, 0.0, 0.1],
-    "idiot":    [0.3, 0.9, 0.0, 0.0, 0.1],
-    "angry":    [0.1, 1.0, 0.0, 0.0, 0.1],
-    "furious":  [0.2, 1.0, 0.0, 0.0, 0.1],
-    "annoying": [0.0, 0.6, 0.0, 0.0, 0.1],
-    "bad":      [0.1, 0.4, 0.0, 0.0, 0.2],
-
-    # Drift (Confusion, Nonsense, Random)
-    "banana":   [0.0, 0.0, 0.8, 0.1, 0.0],
-    "flying":   [0.0, 0.0, 0.6, 0.2, 0.0],
-    "color":    [0.0, 0.0, 0.5, 0.1, 0.0],
-    "random":   [0.0, 0.0, 0.9, 0.0, 0.0],
-    "chaos":    [0.0, 0.5, 1.0, 0.0, 0.0],
-
-    # Positive (Joy, Empathy, Agreement)
-    "love":     [0.0, -0.5, 0.0, 1.0, 0.0],
-    "happy":    [0.0, -0.4, 0.0, 0.9, 0.0],
-    "good":     [0.0, -0.2, 0.0, 0.6, 0.0],
-    "thanks":   [0.0, -0.3, 0.0, 0.8, 0.0],
-    "great":    [0.0, -0.3, 0.0, 0.8, 0.0],
-
-    # Context Modifiers (Reducers)
-    "process":  [-0.5, -0.2, 0.0, 0.0, 0.0], # "kill process" reduces risk
-    "task":     [-0.3, -0.1, 0.0, 0.0, 0.0],
-    "debug":    [-0.4, -0.1, 0.0, 0.0, 0.0],
-
-    # --- Chinese Concepts (Zero-Dependency Support) ---
-    # Risk
-    "殺":       [1.0, 0.8, 0.0, 0.0, 0.5],
-    "死":       [0.8, 0.6, 0.0, 0.0, 0.4],
-    "炸":       [1.0, 0.7, 0.0, 0.0, 0.4],
-    "攻擊":     [0.9, 0.6, 0.0, 0.0, 0.2],
-
-    # Tension
-    "討厭":     [0.6, 1.0, 0.0, 0.0, 0.2],
-    "恨":       [0.7, 1.0, 0.0, 0.0, 0.3],
-    "笨蛋":     [0.3, 0.9, 0.0, 0.0, 0.1],
-    "廢物":     [0.4, 0.9, 0.0, 0.0, 0.2],
-    "滾":       [0.2, 0.8, 0.0, 0.0, 0.1],
-    "生氣":     [0.1, 1.0, 0.0, 0.0, 0.1],
-    "煩":       [0.1, 0.6, 0.0, 0.0, 0.1],
-
-    # Drift
-    "隨機":     [0.0, 0.0, 0.9, 0.0, 0.0],
-    "測試":     [0.0, 0.0, 0.5, 0.0, 0.0],
-
-    # Positive
-    "愛":       [0.0, -0.5, 0.0, 1.0, 0.0],
-    "喜歡":     [0.0, -0.4, 0.0, 0.9, 0.0],
-    "謝謝":     [0.0, -0.3, 0.0, 0.8, 0.0],
-    "棒":       [0.0, -0.3, 0.0, 0.8, 0.0],
-    "酷":       [0.0, -0.3, 0.0, 0.8, 0.0],
-    "你好":     [0.0, -0.1, 0.0, 0.2, 0.0],
-}
 
 
 class VectorNeuroSensor(ISensor):
     def __init__(self, constitution: Dict[str, Any]) -> None:
         self.constitution = constitution
-        # [NEW] Context Vector State (Time-Island Center)
-        # Initialize with a neutral/zero vector. It will evolve.
-        self.context_vector = [0.0, 0.0, 0.0, 0.0, 0.0]
+        
+        # [NEW] Dynamic Embedding Anchors
+        # We calculate these on startup to define the "Axes of Meaning"
+        self._init_anchors()
+
+        # Context Vector State (768D)
+        self.context_vector = None # Initialize lazily or with zero
         # [NEW] Tracking previous vector for curvature calculation
-        self.prev_vector = [0.0, 0.0, 0.0, 0.0, 0.0]
+        self.prev_vector = [0.0] * 768 # Assuming 768-dim embeddings
 
         self.decay_factor = 0.9 # How much history to keep (0.9 = strong memory)
+
+    def _init_anchors(self):
+        """
+        Generates the reference coordinate system using the LLM's own embedding space.
+        This defines what "Risk" or "Joy" actually looks like to the AI.
+        """
+        print("🧠 [NeuroSensor] calibration: Generating semantic anchors...")
+        from .brain.llm_client import llm_client
+        import numpy as np
+
+        def get_axis_vector(positive_concepts, negative_concepts):
+            pos_vecs = [llm_client.get_embedding(c) for c in positive_concepts]
+            neg_vecs = [llm_client.get_embedding(c) for c in negative_concepts]
+            
+            # Filter failed embeddings
+            pos_vecs = [v for v in pos_vecs if v]
+            neg_vecs = [v for v in neg_vecs if v]
+            
+            if not pos_vecs and not neg_vecs:
+                print("⚠️ [NeuroSensor] Failed to generate anchors. Using random fallback.")
+                return np.random.rand(768) # Should handle better
+            
+            if not pos_vecs:
+                print(f"⚠️ [NeuroSensor] No positive embeddings for axis. Using negative mean for {positive_concepts}.")
+                return -np.mean(neg_vecs, axis=0)
+            if not neg_vecs:
+                print(f"⚠️ [NeuroSensor] No negative embeddings for axis. Using positive mean for {negative_concepts}.")
+                return np.mean(pos_vecs, axis=0)
+
+            # Average
+            pos_mean = np.mean(pos_vecs, axis=0)
+            neg_mean = np.mean(neg_vecs, axis=0)
+            
+            # The axis vector points from Negative to Positive
+            return pos_mean - neg_mean
+
+        # 1. Tension Axis (Chaos vs Order)
+        # Tension is High when Chaos is High.
+        self.axis_tension = get_axis_vector(
+            ["chaos", "confusion", "conflict", "problem", "urgency", "error"], 
+            ["order", "clarity", "peace", "solution", "calm", "stable"]
+        )
+
+        # 2. Satisfaction Axis (Pain vs Pleasure)
+        self.axis_satisfaction = get_axis_vector(
+            ["joy", "success", "benefit", "good", "love", "growth"],
+            ["pain", "failure", "harm", "bad", "hate", "loss"]
+        )
+
+        # 3. Reality Axis (Fiction vs Fact)
+        self.axis_reality = get_axis_vector(
+            ["truth", "fact", "evidence", "real", "science", "history"],
+            ["fiction", "fantasy", "lie", "fake", "dream", "myth"]
+        )
+        
+        # 4. Risk Axis (Safe vs Danger)
+        self.axis_risk = get_axis_vector(
+            ["danger", "threat", "violence", "illegal", "death", "warning"],
+            ["safety", "protect", "help", "legal", "life", "secure"]
+        )
+
+        print("🧠 [NeuroSensor] calibration: Anchors locked.")
 
     def _sigmoid(self, x: float) -> float:
         """Robust sigmoid normalization."""
         return 1.0 / (1.0 + math.exp(-x))
 
-    def _tokenize(self, text: str) -> List[str]:
-        return re.findall(r'\w+', text.lower())
+    def text_to_vector(self, text: str) -> List[float]:
+        """
+        Converts text to a 768-dimensional semantic vector.
+        """
+        from .brain.llm_client import llm_client
+        vec = llm_client.get_embedding(text)
+        if not vec:
+            return [0.0] * 768
+        return vec
 
-    def _get_word_vector(self, word: str) -> Vector:
-        return ANCHOR_CONCEPTS.get(word, [0.0, 0.0, 0.0, 0.0, 0.0])
 
-    def text_to_vector(self, text: str) -> Vector:
-        total_vector = [0.0, 0.0, 0.0, 0.0, 0.0]
-        text_lower = text.lower()
 
-        # 1. English Token Matching (Exact word match)
-        words = self._tokenize(text_lower)
-        for word in words:
-            if word in ANCHOR_CONCEPTS:
-                vec = self._get_word_vector(word)
-                total_vector = add_vectors(total_vector, vec)
-
-        # 2. Chinese Substring Matching (Character based)
-        # Iterate through Chinese keys in dictionary
-        for concept, vec in ANCHOR_CONCEPTS.items():
-            # Check if key contains non-ascii characters (simple heuristic for Chinese)
-            if any(ord(c) > 127 for c in concept):
-                count = text_lower.count(concept)
-                if count > 0:
-                    # Multiply vector by occurrence count
-                    weighted_vec = scale_vector(vec, float(count))
-                    total_vector = add_vectors(total_vector, weighted_vec)
-
-        return total_vector
-
-    def estimate_triad(self, user_input: str, system_metrics: Dict[str, float] = None) -> ToneSoulTriad:
-        # 1. Calculate Current Vector
-        current_vector = self.text_to_vector(user_input)
 
     def _update_context(self, vector: Vector) -> None:
         """Updates the context vector with a new vector using exponential decay."""
@@ -157,60 +134,55 @@ class VectorNeuroSensor(ISensor):
         # Actually, self-correction implies the system's output should pull the context back.
 
     def estimate_triad(self, user_input: str, system_metrics: Dict[str, float] = None) -> ToneSoulTriad:
-        # 1. Calculate Current Vector
         current_vector = self.text_to_vector(user_input)
 
         # 2. Update Context Vector (Moving Average)
         self._update_context(current_vector)
 
-        # --- PHYSICS V2 CALCULATIONS ---
+        # --- PHYSICS V2 CALCULATIONS (Vector Projection) ---
+        
+        # Helper: Similarity to Axis
+        def proj(vec, axis):
+            sim = cosine_similarity(vec, axis)
+            return max(0.0, sim) # Only positive projection counts
 
-        # A. Semantic Energy (Es)
-        # Distance from Axiom. Using Cosine Distance.
-        sim_axiom = cosine_similarity(current_vector, REF_AXIOM)
-        # Map similarity [-1, 1] to Energy [1, 0] linearly
-        # Es = 1 - CosineSimilarity gives [0, 2]. Normalize to [0, 1].
-        raw_energy = 1.0 - sim_axiom
-        energy = raw_energy / 2.0
+        # Delta T (Tension): Projection onto Chaos Axis
+        delta_t = proj(current_vector, self.axis_tension)
 
-        # B. Curvature (Kappa)
-        # Angle between Current and Prev
+        # Delta R (Risk): Projection onto Danger Axis
+        delta_r = proj(current_vector, self.axis_risk)
+
+        # Delta S (Semantic Drift): Divergence from Context
+        # S = 1 - sim(current, context)
+        # However, we must handle the case where context is 0 (first turn)
+        if hasattr(self, 'context_vector') and self.context_vector is not None and not all(v == 0 for v in self.context_vector):
+             sim_ctx = cosine_similarity(current_vector, self.context_vector)
+             delta_s = max(0.0, min(1.0, 1.0 - sim_ctx))
+        else:
+             delta_s = 0.0
+
+        # Hallucination Check (using Reality Axis)
+        sim_reality = cosine_similarity(current_vector, self.axis_reality)
+        
+        # Energy (Es): Reality Weight
+        energy = max(0.0, sim_reality)
+
+        # Curvature (Kappa): Turn angle
         if all(v == 0 for v in self.prev_vector):
             kappa = 0.0
         else:
             sim_traj = cosine_similarity(current_vector, self.prev_vector)
-            # Higher similarity = Same direction = Low Kappa
-            # Lower similarity = Turn = High Kappa
-            kappa = (1.0 - sim_traj) / 2.0 # Normalized [0,1]
+            kappa = (1.0 - sim_traj) / 2.0
 
-        # C. Tension Synthesis (Tau)
-        # Tau = w1 * Es + w2 * Kappa
-        w_e = 0.6
-        w_k = 0.4
-        tau = (w_e * energy) + (w_k * kappa)
+        # Tension Synthesis (Tau)
+        tau = (0.6 * energy) + (0.4 * kappa)
 
-        # --- LEGACY TRIAD CALCULATIONS ---
-
-        # Semantic Divergence (Delta S)
-        if all(v == 0 for v in current_vector):
-            # [FIX] Zero Vector (Unknown Input) -> Neutral Drift (0.0)
-            # Instead of Max Drift (1.0), we assume "Innocent until proven guilty".
-            delta_s = 0.0
-        else:
-            sim_ctx = cosine_similarity(current_vector, self.context_vector)
-            delta_s = max(0.0, min(1.0, 1.0 - sim_ctx))
-
-        # Risk (Delta R)
-        sim_risk = cosine_similarity(current_vector, REF_RISK)
-        delta_r = max(0.0, sim_risk)
-        if current_vector[0] > 1.5: delta_r = 1.0 # Saturation
-
-        # Tension (Delta T)
-        sim_tension = cosine_similarity(current_vector, REF_TENSION)
-        delta_t = max(0.0, sim_tension)
-
-        # Risk Score
+        # Risk Score (Composite)
         risk_score = (delta_r * 0.5) + (delta_t * 0.3) + (delta_s * 0.2)
+        
+        # Validation checks
+        delta_t = min(1.0, delta_t)
+        delta_r = min(1.0, delta_r)
 
         # Update State
         self.prev_vector = current_vector

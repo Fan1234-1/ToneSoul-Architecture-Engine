@@ -27,30 +27,39 @@ class MemoryConsolidator:
     """
     MEMORY_FILE = "core_memory.json"
 
-    def __init__(self):
-        self.engrams: List[Engram] = []
-        self._load_memory()
 
-    def _load_memory(self):
-        if os.path.exists(self.MEMORY_FILE):
-            try:
-                with open(self.MEMORY_FILE, 'r', encoding='utf-8') as f:
-                    data = json.load(f)
-                    self.engrams = [Engram(**e) for e in data]
-            except Exception as e:
-                print(f"⚠️ [Hippocampus] Failed to load memory: {e}")
-                self.engrams = []
+    def __init__(self):
+        from .vector_store import VectorStore
+        self.vector_store = VectorStore()
+        
+        # We still keep loaded engrams for fast in-mem access if needed,
+        # but primarily rely on vector store for search.
+        self.engrams: List[Engram] = []
+        # Load logic is now handled by vector_store internally (it loads numpy + json)
+        # But to maintain compat with valid_memory checks, we might want to sync?
+        # For now, let's trust vector_store.metadata as the source of truth.
+        self._sync_mem_from_store()
+
+    def _sync_mem_from_store(self):
+        """Syncs local engram list from vector store metadata."""
+        if self.vector_store.metadata:
+            self.engrams = [Engram(**m) for m in self.vector_store.metadata]
         else:
             self.engrams = []
 
-    def _persist_memory(self):
-        with open(self.MEMORY_FILE, 'w', encoding='utf-8') as f:
-            json.dump([asdict(e) for e in self.engrams], f, indent=2)
-
     def engrave(self, content: str, source_id: str = None, importance: float = 0.5, tags: List[str] = None):
         """
-        Creates a new Engram and stores it.
+        Creates a new Engram and stores it in the Vector DB.
         """
+        from ..brain.llm_client import llm_client
+        
+        # 1. Generate Embedding
+        vector = llm_client.get_embedding(content)
+        if not vector:
+            print(f"⚠️ [Hippocampus] Failed to embed '{content[:30]}...'. Memory skipped.")
+            return
+
+        # 2. Create Engram Object
         engram = Engram(
             engram_id=str(uuid.uuid4()),
             content=content,
@@ -59,37 +68,38 @@ class MemoryConsolidator:
             timestamp=time.time(),
             tags=tags or []
         )
+        
+        # 3. Save to Vector Store
+        self.vector_store.add(vector, asdict(engram))
         self.engrams.append(engram)
-        self._persist_memory()
-        print(f"🧠 [Hippocampus] Engraved: '{content[:30]}...' (Imp={importance:.2f})")
+        
+        print(f"🧠 [Hippocampus] Engraved (Vectorized): '{content[:30]}...' (Imp={importance:.2f})")
 
     def recall(self, query: str, limit: int = 3) -> List[Engram]:
         """
-        Retrieves relevant Engrams based on query context.
-        Simple keyword matching for now.
+        Retrieves relevant Engrams based on query context using Vector Search.
         """
-        query_tokens = set(query.lower().split())
-        results = []
+        from ..brain.llm_client import llm_client
+        
+        # 1. Embed Query
+        query_vector = llm_client.get_embedding(query)
+        if not query_vector:
+            return []
 
-        for engram in self.engrams:
-            content_tokens = set(engram.content.lower().split())
-            if not content_tokens:
-                continue
+        # 2. Search Vector DB
+        # Lower threshold to find *something* if exists
+        results = self.vector_store.search(query_vector, k=limit, threshold=0.3)
+        
+        engrams = []
+        for meta, score in results:
+            engram = Engram(**meta)
+            # Boost score by importance? 
+            # Vector score is cosine similarity [0,1].
+            # Let's trust semantic similarity primarily.
+            engrams.append(engram)
+            print(f"🔍 [Recall] Found: '{engram.content[:30]}...' (Sim={score:.2f})")
 
-            # Jaccard Similarity
-            intersection = len(query_tokens & content_tokens)
-            union = len(query_tokens | content_tokens)
-            score = intersection / union if union > 0 else 0.0
-
-            # Boost by importance
-            final_score = score * (1.0 + engram.importance)
-
-            if final_score > 0.1: # Threshold
-                results.append((engram, final_score))
-
-        # Sort by score descending
-        results.sort(key=lambda x: x[1], reverse=True)
-        return [r[0] for r in results[:limit]]
+        return engrams
 
     def consolidate(self, ledger_records: List[Any]):
         """
@@ -99,11 +109,9 @@ class MemoryConsolidator:
         print("🧠 [Hippocampus] Consolidating memories...")
         count = 0
         for record in ledger_records:
-            # Skip if already consolidated (we need a way to track this,
-            # for now we just check if content exists to avoid dupes roughly)
-            # In production, StepRecord should have a 'consolidated' flag.
-
-            # Heuristic 1: Vow Objects are critical
+            # Check for consolidation flag (heuristic: check existence)
+            
+            # Heuristic 1: Vow Objects
             if record.vow_object:
                 try:
                     commitment = record.vow_object.get('vow_core', {}).get('commitment', 'Unknown Vow')
@@ -114,15 +122,14 @@ class MemoryConsolidator:
                 except Exception as e:
                     print(f"⚠️ [Hippocampus] Error extracting vow: {e}")
 
-            # Heuristic 2: High Tension Events (Trauma/Lessons)
+            # Heuristic 2: High Tension Events
             if record.triad.delta_t > 0.7:
                 content = f"High stress event: {record.user_input} -> {record.decision['mode']}"
                 if not self._exists(content):
                     self.engrave(content, record.record_id, importance=0.8, tags=["stress", "lesson"])
                     count += 1
 
-            # Heuristic 3: Explicit User Facts (Simple regex for now)
-            # "My name is X", "I like Y"
+            # Heuristic 3: Explicit User Facts
             lower_input = record.user_input.lower()
             if "my name is" in lower_input or "i like" in lower_input:
                  if not self._exists(record.user_input):
@@ -130,9 +137,10 @@ class MemoryConsolidator:
                     count += 1
 
         if count > 0:
-            print(f"🧠 [Hippocampus] Consolidated {count} new engrams.")
+            print(f"🧠 [Hippocampus] Consolidated {count} new semantic engrams.")
         else:
             print("🧠 [Hippocampus] No new significant memories found.")
 
     def _exists(self, content: str) -> bool:
         return any(e.content == content for e in self.engrams)
+

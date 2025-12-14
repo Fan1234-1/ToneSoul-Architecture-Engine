@@ -84,5 +84,29 @@ class LLMClient:
             return f"Exception: {e}"
 
 
+    def get_embedding(self, text: str, model: str = "nomic-embed-text") -> list:
+        """
+        Generates vector embeddings for a given text.
+        Returns a list of floats (the vector).
+        """
+        url = f"{self.base_url}/api/embeddings"
+        payload = {
+            "model": model,
+            "prompt": text
+        }
+
+        try:
+            response = requests.post(url, json=payload)
+            if response.status_code == 200:
+                return response.json().get("embedding", [])
+            else:
+                print(f"⚠️ [LLMClient] Embedding failed: {response.text}")
+                # Fallback: Return empty list or handle upper layer?
+                # Better to return empty list so upper layer can decide to zero-pad or fail.
+                return []
+        except Exception as e:
+            print(f"❌ [LLMClient] Embedding exception: {e}")
+            return []
+
 # Singleton instance for easy import
 llm_client = LLMClient()
