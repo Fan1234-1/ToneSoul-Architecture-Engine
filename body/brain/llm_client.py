@@ -1,112 +1,119 @@
-import requests
+from __future__ import annotations
+
 import os
+from typing import Any, List
+
+import requests
 
 
 class LLMClient:
     """
-    A client for interacting with the Ollama API.
-    Supports text generation, chat, and vision analysis.
+    Lightweight Ollama client with fail-fast timeouts.
+    Designed to degrade safely when Ollama is unavailable.
     """
 
-    def __init__(self, base_url="http://localhost:11434"):
-        self.base_url = base_url
-        self.available_models = []
+    def __init__(self, base_url: str | None = None, timeout: float | None = None):
+        env_url = os.getenv("OLLAMA_HOST")
+        self.base_url = (base_url or env_url or "http://localhost:11434").rstrip("/")
+        self.timeout = float(timeout or os.getenv("OLLAMA_TIMEOUT_SEC", "2.0"))
+        self.available_models: List[str] = []
+        self.online = False
         self._refresh_models()
 
-    def _refresh_models(self):
-        """Fetches the list of available models from Ollama."""
+    def _request(self, method: str, path: str, **kwargs: Any) -> requests.Response:
+        url = f"{self.base_url}{path}"
+        kwargs.setdefault("timeout", self.timeout)
+        return requests.request(method=method, url=url, **kwargs)
+
+    def _refresh_models(self) -> None:
+        """Fetch list of available models from Ollama."""
         try:
-            response = requests.get(f"{self.base_url}/api/tags")
+            response = self._request("GET", "/api/tags")
             if response.status_code == 200:
                 data = response.json()
-                self.available_models = [model['name'] for model in data.get('models', [])]
-                print(f"🧠 [LLMClient] Connected. Available models: {self.available_models}")
-            else:
-                print(f"⚠️ [LLMClient] Failed to list models. Status: {response.status_code}")
-        except Exception as e:
-            print(f"❌ [LLMClient] Connection failed: {e}")
+                self.available_models = [model["name"] for model in data.get("models", [])]
+                self.online = True
+                print(f"[LLMClient] Connected. Available models: {self.available_models}")
+                return
+            print(f"[LLMClient] Failed to list models. Status: {response.status_code}")
+        except requests.RequestException as exc:
+            print(f"[LLMClient] Connection failed: {exc}")
+        self.available_models = []
+        self.online = False
 
-    def generate(self, prompt: str, model: str = "gemma3:4b", system: str = None) -> str:
-        """
-        Generates text based on a prompt.
-        """
-        url = f"{self.base_url}/api/generate"
+    def generate(self, prompt: str, model: str = "gemma3:4b", system: str | None = None) -> str:
+        if not self.online:
+            return "Exception: Ollama unavailable"
+
         payload = {
             "model": model,
             "prompt": prompt,
-            "stream": False
+            "stream": False,
         }
         if system:
             payload["system"] = system
 
         try:
-            response = requests.post(url, json=payload)
+            response = self._request("POST", "/api/generate", json=payload)
             if response.status_code == 200:
                 return response.json().get("response", "")
-            else:
-                return f"Error: {response.text}"
-        except Exception as e:
-            return f"Exception: {e}"
+            return f"Error: {response.text}"
+        except requests.RequestException as exc:
+            return f"Exception: {exc}"
 
     def generate_vision(self, prompt: str, image_path: str, model: str = "llava") -> str:
-        """
-        Analyzes an image using a VLM (Vision Language Model).
-        """
+        if not self.online:
+            return "Exception: Ollama unavailable"
+
         import base64
 
-        # Check if image exists
         if not os.path.exists(image_path):
             return f"Error: Image not found at {image_path}"
 
-        # Encode image
         try:
             with open(image_path, "rb") as img_file:
-                b64_image = base64.b64encode(img_file.read()).decode('utf-8')
-        except Exception as e:
-            return f"Error encoding image: {e}"
+                b64_image = base64.b64encode(img_file.read()).decode("utf-8")
+        except OSError as exc:
+            return f"Error encoding image: {exc}"
 
-        url = f"{self.base_url}/api/generate"
         payload = {
             "model": model,
             "prompt": prompt,
             "images": [b64_image],
-            "stream": False
+            "stream": False,
         }
 
         try:
-            print(f"👁️ [LLMClient] Sending image to {model}...")
-            response = requests.post(url, json=payload)
+            print(f"[LLMClient] Sending image to {model}...")
+            response = self._request("POST", "/api/generate", json=payload)
             if response.status_code == 200:
                 return response.json().get("response", "")
-            else:
-                return f"Error: {response.text}"
-        except Exception as e:
-            return f"Exception: {e}"
-
+            return f"Error: {response.text}"
+        except requests.RequestException as exc:
+            return f"Exception: {exc}"
 
     def get_embedding(self, text: str, model: str = "nomic-embed-text") -> list:
-        """
-        Generates vector embeddings for a given text.
-        Returns a list of floats (the vector).
-        """
-        url = f"{self.base_url}/api/embeddings"
+        if not self.online:
+            return []
+
         payload = {
             "model": model,
-            "prompt": text
+            "prompt": text,
         }
 
         try:
-            response = requests.post(url, json=payload)
+            response = self._request("POST", "/api/embeddings", json=payload)
             if response.status_code == 200:
-                return response.json().get("embedding", [])
-            else:
-                print(f"⚠️ [LLMClient] Embedding failed: {response.text}")
-                # Fallback: Return empty list or handle upper layer?
-                # Better to return empty list so upper layer can decide to zero-pad or fail.
+                embedding = response.json().get("embedding", [])
+                if isinstance(embedding, list):
+                    return embedding
                 return []
-        except Exception as e:
-            print(f"❌ [LLMClient] Embedding exception: {e}")
+            print(f"[LLMClient] Embedding failed: {response.text}")
             return []
+        except requests.RequestException as exc:
+            print(f"[LLMClient] Embedding exception: {exc}")
+            return []
+
 
 # Singleton instance for easy import
 llm_client = LLMClient()

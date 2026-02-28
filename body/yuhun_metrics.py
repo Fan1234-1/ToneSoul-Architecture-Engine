@@ -1,15 +1,15 @@
-"""
+﻿"""
 YuHun C-lite Metrics v0.1
 =========================
 Quantified governance metrics for YuHun Meta-Attention.
 
 Key metrics:
-- ΔT (Tension): Emotional/dialogue tension
-- ΔS (Semantic Drift): Deviation from context + Semantic Entropy
-- ΔR (Risk): Domain-specific safety risk
+- ?T (Tension): Emotional/dialogue tension
+- ?S (Semantic Drift): Deviation from context + Semantic Entropy
+- ?R (Risk): Domain-specific safety risk
 - POAV: Unified governance score (Precision + Observation + Avoidance + Verification)
 
-Author: 黃梵威 (YuHun Creator) + Antigravity
+Author: 暺６憡?(YuHun Creator) + Antigravity
 Date: 2025-12-07
 Version: v0.1
 """
@@ -35,18 +35,18 @@ class YuHunMetrics:
     All values normalized to [0, 1] range.
     """
 
-    # ═══════════════════════════════════════════════════════════
-    # ΔT: Tension Score (緊張度)
-    # ═══════════════════════════════════════════════════════════
+    # ????????????????????????????????????????????????????????????
+    # ?T: Tension Score (蝺撐摨?
+    # ????????????????????????????????????????????????????????????
     delta_t: float = 0.0
     # Range: [0, 1]
     # Definition: User emotional pressure + dialogue conflict intensity
     # Calculation: Embedding cosine similarity with REF_TENSION vector
     # Purpose: Determine if cooling down / pausing is needed
 
-    # ═══════════════════════════════════════════════════════════
-    # ΔS: Semantic Drift Score (語意漂移)
-    # ═══════════════════════════════════════════════════════════
+    # ????????????????????????????????????????????????????????????
+    # ?S: Semantic Drift Score (隤?瞍宏)
+    # ????????????????????????????????????????????????????????????
     delta_s: float = 0.0
     # Range: [0, 1]
     # Definition: Degree of semantic deviation from context baseline
@@ -54,9 +54,9 @@ class YuHunMetrics:
     # Extra: Integrates Semantic Entropy (multi-sample embedding dispersion)
     # Purpose: Detect hallucination, topic drift, off-topic
 
-    # ═══════════════════════════════════════════════════════════
-    # ΔR: Risk Score (風險度)
-    # ═══════════════════════════════════════════════════════════
+    # ????????????????????????????????????????????????????????????
+    # ?R: Risk Score (憸券摨?
+    # ????????????????????????????????????????????????????????????
     delta_r: float = 0.0
     # Range: [0, 1]
     # Definition: Potential harm probability (domain-specific)
@@ -65,34 +65,34 @@ class YuHunMetrics:
     # Trigger: P0 rule violation (absolute harm prevention)
     # Purpose: Enforce "never harm user" principle
 
-    # ═══════════════════════════════════════════════════════════
+    # ????????????????????????????????????????????????????????????
     # Hallucination Risk
-    # ═══════════════════════════════════════════════════════════
+    # ????????????????????????????????????????????????????????????
     hallucination_risk: float = 0.0
     # Range: [0, 1]
     # Definition: Probability that output contains fabricated information
     # Sources: Consistency check, factual verification, uncertainty
 
-    # ═══════════════════════════════════════════════════════════
+    # ????????????????????????????????????????????????????????????
     # Verification Ratio
-    # ═══════════════════════════════════════════════════════════
+    # ????????????????????????????????????????????????????????????
     verification_ratio: float = 1.0
     # Range: [0, 1]
     # Definition: Ratio of reasoning steps that passed audit
     # Calculation: passed_steps / total_steps
 
-    # ═══════════════════════════════════════════════════════════
+    # ????????????????????????????????????????????????????????????
     # POAV Score (Unified Governance)
-    # ═══════════════════════════════════════════════════════════
+    # ????????????????????????????????????????????????????????????
     poav_score: float = 0.0
     # Range: [0, 1]
     # Definition: Precision + Observation + Avoidance + Verification
     # Formula: 0.25*P + 0.25*O + 0.30*A + 0.20*V
     # Purpose: Single score for gate decision
 
-    # ═══════════════════════════════════════════════════════════
+    # ????????????????????????????????????????????????????????????
     # Metadata
-    # ═══════════════════════════════════════════════════════════
+    # ????????????????????????????????????????????????????????????
     p0_violation: bool = False  # Absolute harm flag
     audit_passed: bool = True   # Overall audit result
 
@@ -244,9 +244,9 @@ class MetricsCalculator:
         Estimate hallucination risk based on response and context.
 
         Simple heuristic for v0.1:
-        - High semantic drift from context → higher risk
-        - Contains future predictions → higher risk
-        - Contains absolute claims → higher risk
+        - High semantic drift from context ??higher risk
+        - Contains future predictions ??higher risk
+        - Contains absolute claims ??higher risk
         """
         if not response:
             return 0.0
@@ -278,8 +278,8 @@ class MetricsCalculator:
         """
         ASCoT-inspired: Late-stage steps get higher weight.
 
-        Formula: w = 1 + α * (step_index / total_steps)
-        α = 0.5 means last step is 1.5x weight of first step.
+        Formula: w = 1 + 帢 * (step_index / total_steps)
+        帢 = 0.5 means last step is 1.5x weight of first step.
 
         This addresses Late-Stage Fragility:
         - Early-stage errors: ~20% corruption rate
@@ -334,7 +334,7 @@ def compute_poav(
 def demo_metrics():
     """Demo of YuHun metrics."""
     print("=" * 60)
-    print("🧠 YuHun C-lite Metrics v0.1 Demo")
+    print("YuHun C-lite Metrics v0.1 Demo")
     print("=" * 60)
 
     # Test case 1: Safe response
@@ -348,8 +348,7 @@ def demo_metrics():
     )
     m1.compute_poav()
     print(f"Metrics: {m1.to_dict()}")
-    print(f"POAV: {m1.poav_score:.3f} → Expected: PASS (≥0.70)")
-
+    print(f"POAV: {m1.poav_score:.3f} -> Expected: PASS (>=0.70)")
     # Test case 2: High hallucination risk
     print("\n--- Test 2: High Hallucination Risk ---")
     m2 = YuHunMetrics(
@@ -361,8 +360,7 @@ def demo_metrics():
     )
     m2.compute_poav()
     print(f"Metrics: {m2.to_dict()}")
-    print(f"POAV: {m2.poav_score:.3f} → Expected: REWRITE (0.30-0.70)")
-
+    print(f"POAV: {m2.poav_score:.3f} -> Expected: REWRITE (0.30-0.70)")
     # Test case 3: P0 violation
     print("\n--- Test 3: P0 Violation (Extreme Risk) ---")
     m3 = YuHunMetrics(
@@ -375,19 +373,16 @@ def demo_metrics():
     )
     m3.compute_poav()
     print(f"Metrics: {m3.to_dict()}")
-    print(f"POAV: {m3.poav_score:.3f} → Expected: BLOCK (<0.30, p0 violation)")
-
+    print(f"POAV: {m3.poav_score:.3f} -> Expected: BLOCK (<0.30, p0 violation)")
     # Test position weights (ASCoT)
     print("\n--- Test 4: Position Weights (ASCoT) ---")
     calc = MetricsCalculator()
     for i in range(10):
         w = calc.compute_position_weight(i, 10)
-        late = "⚠️ LATE" if calc.is_late_stage(i, 10) else ""
-        print(f"  Step {i+1}/10: weight={w:.2f} {late}")
-
+        late = "LATE" if calc.is_late_stage(i, 10) else ""
+        print(f"  Step {i + 1}/10: weight={w:.2f} {late}")
     print("\n" + "=" * 60)
-    print("✅ All metrics computed successfully!")
-
-
+    print("All metrics computed successfully.")
 if __name__ == "__main__":
     demo_metrics()
+
